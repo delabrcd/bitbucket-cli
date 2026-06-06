@@ -174,6 +174,35 @@ func (step *Step) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// GetPipelineStepID resolves a pipeline step UUID from a UUID or a step name.
+//
+// If nameOrID is already a valid UUID (with or without braces), it is returned
+// unchanged. Otherwise the steps of the pipeline are fetched and the one whose
+// name matches nameOrID (case-insensitively) is returned by UUID.
+func GetPipelineStepID(context context.Context, cmd *cobra.Command, pipelineID string, nameOrID string) (id string, err error) {
+	log := logger.Must(logger.FromContext(context)).Child("pipeline", "getstepid")
+
+	if _, parseErr := common.ParseUUID(nameOrID); parseErr == nil {
+		return nameOrID, nil
+	}
+
+	repository, err := repository.GetRepository(cmd.Context(), cmd)
+	if err != nil {
+		return "", err
+	}
+	steps, err := profile.GetAll[Step](context, cmd, repository.GetPath("pipelines", pipelineID, "steps"))
+	if err != nil {
+		log.Errorf("Failed to get steps for pipeline %s: %v", pipelineID, err)
+		return "", err
+	}
+	for _, step := range steps {
+		if strings.EqualFold(step.Name, nameOrID) {
+			return step.ID.String(), nil
+		}
+	}
+	return "", errors.NotFound.With("pipeline step", nameOrID)
+}
+
 // GetPipelineStepIDs gets the IDs of the steps for a pipeline
 func GetPipelineStepIDs(context context.Context, cmd *cobra.Command, pipelineID string) (ids []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("pipeline", "getids")
