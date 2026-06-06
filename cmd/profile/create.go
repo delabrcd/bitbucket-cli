@@ -78,7 +78,7 @@ func init() {
 func createProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
 
-	if _, err := GetProfileFromCommand(cmd.Context(), cmd); err != nil {
+	if err := Profiles.Load(cmd.Context(), cmd); err != nil {
 		return err
 	}
 
