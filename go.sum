@@ -44,6 +44,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/delabrcd/go-flags v0.5.1 h1:/51SLG/m4cKykTvN9q8g0ojsXwYhGJ0ytB99Lito7Qo=
+github.com/delabrcd/go-flags v0.5.1/go.mod h1:b3yCCjbmXVwHPYoroabqMMaI2fL9fFO5CkTKWD9HtQY=
 github.com/elazarl/goproxy v1.7.2 h1:Y2o6urb7Eule09PjlhQRGNsqRfPmYI3KKQLFpCAV3+o=
 github.com/elazarl/goproxy v1.7.2/go.mod h1:82vkLNir0ALaW14Rc399OTTjyNREgmdL2cVoIbS6XaE=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
@@ -67,8 +69,6 @@ github.com/gildas/go-core v0.6.4 h1:l+4zBiQCu1gKG+PYL0HqV4UcD1x5XgSUxnsOOrfT+n0=
 github.com/gildas/go-core v0.6.4/go.mod h1:m654RMk7tOAXG+MCkhguNrptmWa9qwNRUxZRh7fcLu0=
 github.com/gildas/go-errors v0.4.0 h1:pJ5km8sKrOm5MQd/0g+y4pSKI38YBwPs5NkwSsU8bkM=
 github.com/gildas/go-errors v0.4.0/go.mod h1:a05AfO2MLgb8OTPj5l/HZRrBhfjxnwWyEKXgyeoKjtg=
-github.com/gildas/go-flags v0.5.0 h1:Y4e2ql6wGFsSr+o4wdUC1vr5Rk+FIyJyiJG32IpXOrU=
-github.com/gildas/go-flags v0.5.0/go.mod h1:qyFaL181I8KvBvDUqj6b8kZ299u9LLY2bGcfqsvoy1E=
 github.com/gildas/go-logger v1.9.5 h1:5MDK8R3PG+OGylu4sHdJi+zV+W6TJHwVMpHzwOqzamk=
 github.com/gildas/go-logger v1.9.5/go.mod h1:k4zAm14pVkxhGgcxdpE41UyTRjCph2gI5ZX2x6Psp4A=
 github.com/gildas/go-request v0.9.19 h1:pA3vZcsl6o/E7XO4RVW76LZ11ldwYR0WyzukD4sXXhQ=
