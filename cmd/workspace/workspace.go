@@ -136,6 +136,10 @@ func GetWorkspaceName(context context.Context, cmd *cobra.Command) (workspaceNam
 		log.Debugf("Workspace name found in git config: %s, from remote: %s", remote.WorkspaceName(), remote.URL)
 		return remote.WorkspaceName(), nil
 	}
+	if profile.Current == nil {
+		log.Debugf("No current profile yet, resolving it before falling back to its default workspace")
+		_, _ = profile.GetProfileFromCommand(context, cmd)
+	}
 	if profile.Current != nil && len(profile.Current.DefaultWorkspace) > 0 {
 		log.Debugf("Workspace name found in profile: %s", profile.Current.DefaultWorkspace)
 		return profile.Current.DefaultWorkspace, nil
