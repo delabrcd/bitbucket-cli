@@ -1,4 +1,10 @@
 
+Unreleased
+=============
+2026-06-25
+
+* feat: add 'bb api' command for authenticated raw REST API requests (c0be101b)
+
 0.18.1
 =============
 2026-05-29
