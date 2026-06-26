@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -46,6 +47,34 @@ func (profile *Profile) Get(ctx context.Context, cmd *cobra.Command, uripath str
 	options := &request.Options{Method: http.MethodGet}
 	_, err = profile.send(ctx, cmd, options, uripath, response)
 	return
+}
+
+// CallAPI sends an arbitrary HTTP request to the BitBucket API and returns the
+// raw response content without unmarshaling it.
+//
+// uripath follows the same rules as the other client methods: a leading "/" is
+// joined to the profile's API root and the "2.0" version prefix, while an
+// absolute URL (e.g. a pagination "next" link) is used verbatim. body may be
+// nil, an io.Reader (sent as-is), or any value that go-request can encode.
+// payloadType sets the request Content-Type when body is provided.
+func (profile *Profile) CallAPI(ctx context.Context, cmd *cobra.Command, method, uripath, payloadType string, headers map[string]string, body interface{}) (result *request.Content, err error) {
+	options := &request.Options{
+		Method:      method,
+		Accept:      "*/*",
+		Headers:     headers,
+		PayloadType: payloadType,
+		Payload:     body,
+	}
+	// Capture the body through a writer so the success path populates StatusCode
+	// and Status; with a nil target go-request leaves them empty on 2xx. The
+	// writer branch copies the body verbatim, so route it back through
+	// ContentWithData to apply the same gzip decoding the other paths get.
+	var buffer bytes.Buffer
+	result, err = profile.send(ctx, cmd, options, uripath, &buffer)
+	if result != nil && len(result.Data) == 0 && buffer.Len() > 0 {
+		result.Data = request.ContentWithData(buffer.Bytes(), result.Headers).Data
+	}
+	return result, err
 }
 
 // GetRaw gets a resource without unmarshaling it

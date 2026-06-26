@@ -26,9 +26,24 @@ type ContentUpdator struct {
 }
 
 var updateCmd = &cobra.Command{
-	Use:               "update [flags] <comment-id>",
-	Aliases:           []string{"edit"},
-	Short:             "update an issue comment by its <comment-id>.",
+	Use:     "update [flags] <comment-id>",
+	Aliases: []string{"edit"},
+	Short:   "update an issue comment by its <comment-id>.",
+	Long: `Update a pullrequest comment by its <comment-id>.
+
+For an inline (file) comment the line anchor follows the same rules as
+'comment create': Bitbucket anchors to one side of the diff and the side must
+match the kind of line:
+
+  --to   <line>  Line number in the NEW (post-change) version of the file.
+                 Use for ADDED ("+") lines. Also valid for context lines.
+  --from <line>  Line number in the OLD (pre-change) version of the file.
+                 Use for REMOVED ("-") lines. Also valid for context lines.
+  --line <line>  Alias for --to (NEW side); the common added-line case.
+
+Rule of thumb: a line that exists only after the change must be anchored with
+--to/--line; a deleted line with --from; an unchanged context line works with
+either.`,
 	Args:              cobra.ExactArgs(1),
 	ValidArgsFunction: updateValidArgs,
 	RunE:              updateProcess,
@@ -51,12 +66,11 @@ func init() {
 	updateCmd.Flags().Var(updateOptions.PullRequestID, "pullrequest", "Pullrequest to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.File, "file", "", "File to comment on")
-	updateCmd.Flags().IntVar(&updateOptions.From, "line", 0, "From line to comment on. Cannot be used with --to")
-	updateCmd.Flags().IntVar(&updateOptions.From, "from", 0, "From line to comment on. Cannot be used with --line")
-	updateCmd.Flags().IntVar(&updateOptions.To, "to", 0, "To line to comment on. Cannot be used with --line")
+	updateCmd.Flags().IntVar(&updateOptions.To, "line", 0, "Alias for --to (NEW/post-change side); the common added-line case. Cannot be used with --to")
+	updateCmd.Flags().IntVar(&updateOptions.From, "from", 0, "Anchor on the OLD (pre-change) side of the diff; use for removed lines")
+	updateCmd.Flags().IntVar(&updateOptions.To, "to", 0, "Anchor on the NEW (post-change) side of the diff; use for added/context lines. Cannot be used with --line")
 	updateCmd.Flags().Int64Var(&updateOptions.ParentID, "parent", 0, "Parent comment ID to reply to")
 	updateCmd.Flags().BoolVar(&updateOptions.Pending, "pending", false, "Mark the comment as pending")
-	updateCmd.MarkFlagsMutuallyExclusive("line", "from")
 	updateCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = updateCmd.MarkFlagRequired("pullrequest")
 	_ = updateCmd.MarkFlagRequired("comment")

@@ -136,6 +136,7 @@ func GetProfileFromCommand(context context.Context, cmd *cobra.Command) (profile
 		if profile, found = Profiles.Find(cmd.Flag("profile").Value.String()); !found {
 			return nil, errors.ArgumentInvalid.With("profile", cmd.Flag("profile").Value.String())
 		}
+		Current = profile
 	} else if Current == nil {
 		Current = Profiles.Current(context)
 		if Current == nil {

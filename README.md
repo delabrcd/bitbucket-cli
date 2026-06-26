@@ -359,6 +359,48 @@ export BB_CONFIG=~/.bb/config.json
 bb --config ~/.bb/config.json workspace list
 ```
 
+### API
+
+For endpoints that `bb` does not wrap with a dedicated command, `bb api` makes an authenticated request to the [Bitbucket Cloud REST API](https://developer.atlassian.com/cloud/bitbucket/rest/intro/) and prints the response, in the spirit of `gh api`. It uses the current profile's credentials, workspace, and API root.
+
+The endpoint is a path that is joined to the API root and the `2.0` version prefix (a leading `/` is optional). A full `https://` URL is used verbatim, which is handy for following pagination `next` links by hand.
+
+```bash
+bb api user
+bb api repositories/myworkspace/myrepository
+bb api /repositories/myworkspace/myrepository/pullrequests
+```
+
+The method defaults to `GET`, or to `POST` when a body or field is supplied. Use `--method`/`-X` to set it explicitly:
+
+```bash
+bb api -X DELETE repositories/myworkspace/myrepository/pullrequests/42/comments/100
+```
+
+Build a JSON request body with `--field`/`-F` (typed: `true`, `false`, `null`, and numbers are sent as such, while `@file` reads a file and `@-` reads stdin) or `--raw-field`/`-f` (always a string):
+
+```bash
+bb api repositories/myworkspace/myrepository/pullrequests \
+  -f title="My pull request" \
+  -F close_source_branch=true
+```
+
+Alternatively, send a raw body from a file (or stdin) with `--input`, optionally overriding the `--content-type` (default `application/json`):
+
+```bash
+bb api -X POST repositories/myworkspace/myrepository/pullrequests --input body.json
+cat body.json | bb api -X POST repositories/myworkspace/myrepository/pullrequests --input -
+```
+
+Add request headers with `--header`/`-H` (repeatable), include the response status line and headers with `--include`/`-i`, and follow pagination with `--paginate` (every page's `values` are merged into a single result):
+
+```bash
+bb api -i -H "X-Atlassian-Token: no-check" user
+bb api --paginate repositories/myworkspace/myrepository/pullrequests
+```
+
+The response body is written to standard output. When the API returns an HTTP error (status >= 400), the body is still printed and `bb` exits with a non-zero status.
+
 ### Users
 
 You can get the details of your user with the `bb user me` command:

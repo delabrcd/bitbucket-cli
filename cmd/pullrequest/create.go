@@ -40,6 +40,8 @@ var createCmd = &cobra.Command{
 var createOptions struct {
 	Title             string
 	Description       string
+	DescriptionFile   string
+	Fill              bool
 	Source            *flags.EnumFlag
 	Destination       *flags.EnumFlag
 	Reviewers         *flags.EnumSliceFlag
@@ -56,12 +58,16 @@ func init() {
 
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the pullrequest")
+	createCmd.Flags().StringVar(&createOptions.DescriptionFile, "description-file", "", "Read the description from a file (use \"-\" to read from standard input)")
+	createCmd.Flags().BoolVar(&createOptions.Fill, "fill", false, "Fill the title and description from the commit messages between the destination and source branches")
 	createCmd.Flags().Var(createOptions.Source, "source", "Source branch of the pullrequest")
 	createCmd.Flags().Var(createOptions.Destination, "destination", "Destination branch of the pullrequest")
 	createCmd.Flags().Var(createOptions.Reviewers, "reviewer", "Reviewer(s) of the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname. If the first reviewer is `default`, the command will try to find the default reviewers from the repository or project settings.")
 	createCmd.Flags().BoolVar(&createOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
 	createCmd.Flags().BoolVar(&createOptions.Draft, "draft", false, "Create the pullrequest as a draft")
-	_ = createCmd.MarkFlagRequired("title")
+	_ = createCmd.MarkFlagFilename("description-file")
+	createCmd.MarkFlagsMutuallyExclusive("description", "description-file")
+	createCmd.MarkFlagsOneRequired("title", "fill")
 	_ = createCmd.MarkFlagRequired("source")
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Source.CompletionFunc("source"))
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.Destination.CompletionFunc("destination"))
@@ -82,13 +88,43 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	if len(createOptions.Title) == 0 {
+	title := createOptions.Title
+	description := createOptions.Description
+	if cmd.Flag("description-file").Changed {
+		data, rerr := common.ReadFileOrStdin(createOptions.DescriptionFile)
+		if rerr != nil {
+			return rerr
+		}
+		description = string(data)
+	}
+
+	if createOptions.Fill {
+		base := createOptions.Destination.Value
+		if len(base) == 0 {
+			base, err = defaultBaseBranch(ctx)
+			if err != nil {
+				return errors.RuntimeError.Wrap(fmt.Errorf("--fill needs a base branch; pass --destination (could not detect the default branch: %w)", err))
+			}
+		}
+		fillTitle, fillBody, ferr := fillFromCommits(ctx, base, createOptions.Source.Value)
+		if ferr != nil {
+			return ferr
+		}
+		if !cmd.Flag("title").Changed {
+			title = fillTitle
+		}
+		if !cmd.Flag("description").Changed && !cmd.Flag("description-file").Changed {
+			description = fillBody
+		}
+	}
+
+	if len(title) == 0 {
 		return errors.ArgumentMissing.With("title")
 	}
 
 	payload := PullRequestCreator{
-		Title:             createOptions.Title,
-		Description:       createOptions.Description,
+		Title:             title,
+		Description:       description,
 		Source:            Endpoint{Branch: Branch{Name: createOptions.Source.Value}},
 		CloseSourceBranch: createOptions.CloseSourceBranch,
 		Draft:             createOptions.Draft,

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gildas/bitbucket-cli/cmd/api"
 	"github.com/gildas/bitbucket-cli/cmd/artifact"
 	"github.com/gildas/bitbucket-cli/cmd/branch"
 	"github.com/gildas/bitbucket-cli/cmd/cache"
@@ -94,6 +95,7 @@ func init() {
 	_ = RootCmd.RegisterFlagCompletionFunc(CmdOptions.OutputFormat.CompletionFunc("output"))
 	_ = RootCmd.RegisterFlagCompletionFunc(CmdOptions.Workspace.CompletionFunc("workspace"))
 
+	RootCmd.AddCommand(api.Command)
 	RootCmd.AddCommand(artifact.Command)
 	RootCmd.AddCommand(profile.Command)
 	RootCmd.AddCommand(project.Command)

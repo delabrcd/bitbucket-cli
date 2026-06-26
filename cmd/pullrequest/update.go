@@ -32,6 +32,7 @@ var updateCmd = &cobra.Command{
 var updateOptions struct {
 	Title             string
 	Description       string
+	DescriptionFile   string
 	Destination       *flags.EnumFlag
 	AddReviewers      *flags.EnumSliceFlag
 	RemoveReviewers   *flags.EnumSliceFlag
@@ -47,10 +48,14 @@ func init() {
 
 	updateCmd.Flags().StringVar(&updateOptions.Title, "title", "", "Title of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the pullrequest")
+	updateCmd.Flags().StringVar(&updateOptions.DescriptionFile, "description-file", "", "Read the description from a file (use \"-\" to read from standard input)")
 	updateCmd.Flags().Var(updateOptions.Destination, "destination", "Destination branch of the pullrequest")
 	updateCmd.Flags().Var(updateOptions.AddReviewers, "add-reviewer", "Reviewer(s) to add to the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname.")
 	updateCmd.Flags().Var(updateOptions.RemoveReviewers, "remove-reviewer", "Reviewer(s) to remove from the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname.")
 	updateCmd.Flags().BoolVar(&updateOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch after merging")
+
+	_ = updateCmd.MarkFlagFilename("description-file")
+	updateCmd.MarkFlagsMutuallyExclusive("description", "description-file")
 
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.Destination.CompletionFunc("destination"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.AddReviewers.CompletionFunc("add-reviewer"))
@@ -107,9 +112,17 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		updateWanted = true
 	}
 
-	if cmd.Flag("description").Changed {
-		pullrequest.Description = updateOptions.Description
-		pullrequest.Summary.Raw = updateOptions.Description
+	if cmd.Flag("description").Changed || cmd.Flag("description-file").Changed {
+		description := updateOptions.Description
+		if cmd.Flag("description-file").Changed {
+			data, rerr := common.ReadFileOrStdin(updateOptions.DescriptionFile)
+			if rerr != nil {
+				return rerr
+			}
+			description = string(data)
+		}
+		pullrequest.Description = description
+		pullrequest.Summary.Raw = description
 		updateWanted = true
 	}
 

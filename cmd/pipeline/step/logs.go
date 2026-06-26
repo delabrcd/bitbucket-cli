@@ -62,10 +62,15 @@ func logProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	stepID, err := GetPipelineStepID(log.ToContext(cmd.Context()), cmd, logOptions.PipelineID.Value, args[0])
+	if err != nil {
+		return errors.Join(errors.Errorf("failed to get logs for step %s", args[0]), err)
+	}
+
 	steplog, err := profile.GetRaw(
 		log.ToContext(cmd.Context()),
 		cmd,
-		repository.GetPath("pipelines", logOptions.PipelineID.Value, "steps", args[0], "log"),
+		repository.GetPath("pipelines", logOptions.PipelineID.Value, "steps", stepID, "log"),
 	)
 	if err != nil {
 		return errors.Join(errors.Errorf("failed to get logs for step %s", args[0]), err)

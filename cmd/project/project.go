@@ -195,13 +195,14 @@ func (project Project) MarshalJSON() (data []byte, err error) {
 func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, toComplete string) (keys []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "keys")
 
-	workspace := cmd.Flag("workspace").Value.String()
-	if len(workspace) == 0 {
-		workspace = profile.Current.DefaultWorkspace
-		if len(workspace) == 0 {
-			log.Warnf("No workspace given")
-			return
-		}
+	// Resolve the workspace via the shared helper, which safely handles the
+	// parse-time case where the profile is not yet loaded (profile.Current is
+	// nil). This func is invoked while validating the --project enum flag,
+	// before PersistentPreRunE resolves the profile.
+	workspace, err := workspace.GetWorkspaceName(context, cmd)
+	if err != nil || len(workspace) == 0 {
+		log.Warnf("No workspace given")
+		return nil, nil
 	}
 
 	projects, err := profile.GetAll[Project](context, cmd, fmt.Sprintf("/workspaces/%s/projects", workspace))
@@ -218,13 +219,10 @@ func GetProjectKeys(context context.Context, cmd *cobra.Command, args []string, 
 func GetProjectNames(context context.Context, cmd *cobra.Command, args []string, toComplete string) (names []string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("project", "names")
 
-	workspace := cmd.Flag("workspace").Value.String()
-	if len(workspace) == 0 {
-		workspace = profile.Current.DefaultWorkspace
-		if len(workspace) == 0 {
-			log.Warnf("No workspace given")
-			return
-		}
+	workspace, err := workspace.GetWorkspaceName(context, cmd)
+	if err != nil || len(workspace) == 0 {
+		log.Warnf("No workspace given")
+		return nil, nil
 	}
 
 	log.Infof("Getting all projects from workspace %s", workspace)
