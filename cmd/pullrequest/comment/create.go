@@ -29,8 +29,24 @@ var createCmd = &cobra.Command{
 	Use:     "create",
 	Aliases: []string{"add", "new"},
 	Short:   "create a pullrequest comment",
-	Args:    cobra.NoArgs,
-	RunE:    createProcess,
+	Long: `Create a pullrequest comment.
+
+For an inline (file) comment pass --file together with a line anchor. Bitbucket
+anchors an inline comment to one side of the diff, and which side you pick must
+match the kind of line:
+
+  --to   <line>  Line number in the NEW (post-change) version of the file.
+                 Use for ADDED ("+") lines. Also valid for context lines.
+  --from <line>  Line number in the OLD (pre-change) version of the file.
+                 Use for REMOVED ("-") lines. Also valid for context lines.
+  --line <line>  Alias for --to (NEW side); the common added-line case.
+
+Rule of thumb: a line that exists only after the change must be anchored with
+--to/--line; a deleted line with --from; an unchanged context line works with
+either. File line numbers from a tool reading the new file (e.g. "grep -n" on
+the head revision) are NEW-side numbers and belong on --to/--line.`,
+	Args: cobra.NoArgs,
+	RunE: createProcess,
 }
 
 var createOptions struct {
@@ -50,12 +66,11 @@ func init() {
 	createCmd.Flags().Var(createOptions.PullRequestID, "pullrequest", "Pullrequest to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.File, "file", "", "File to comment on")
-	createCmd.Flags().IntVar(&createOptions.From, "line", 0, "From line to comment on. Cannot be used with --to")
-	createCmd.Flags().IntVar(&createOptions.From, "from", 0, "From line to comment on. Cannot be used with --line")
-	createCmd.Flags().IntVar(&createOptions.To, "to", 0, "To line to comment on. Cannot be used with --line")
+	createCmd.Flags().IntVar(&createOptions.To, "line", 0, "Alias for --to (NEW/post-change side); the common added-line case. Cannot be used with --to")
+	createCmd.Flags().IntVar(&createOptions.From, "from", 0, "Anchor on the OLD (pre-change) side of the diff; use for removed lines")
+	createCmd.Flags().IntVar(&createOptions.To, "to", 0, "Anchor on the NEW (post-change) side of the diff; use for added/context lines. Cannot be used with --line")
 	createCmd.Flags().Int64Var(&createOptions.ParentID, "parent", 0, "Parent comment ID to reply to")
 	createCmd.Flags().BoolVar(&createOptions.Pending, "pending", false, "Mark the comment as pending")
-	createCmd.MarkFlagsMutuallyExclusive("line", "from")
 	createCmd.MarkFlagsMutuallyExclusive("line", "to")
 	_ = createCmd.MarkFlagRequired("pullrequest")
 	_ = createCmd.MarkFlagRequired("comment")

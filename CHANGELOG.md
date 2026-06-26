@@ -1,6 +1,11 @@
 
 Unreleased
 =============
+2026-06-26
+
+* change: pullrequest comment --line now anchors the NEW (post-change) diff side (alias of --to) instead of --from; matches the common added-line case. Use --from explicitly for removed lines
+* docs: clarify pullrequest comment --from/--to/--line diff-side semantics (added=--to/--line, removed=--from, context=either)
+
 2026-06-25
 
 * feat: add 'bb api' command for authenticated raw REST API requests (c0be101b)
