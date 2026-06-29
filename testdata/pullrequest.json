@@ -6,6 +6,7 @@
       "title": "Merge feature/links",
       "description": "Feature links. Do not delete the feature branch after the merge.",
       "state": "MERGED",
+      "draft": false,
       "merge_commit": {
         "type": "commit",
         "hash": "5663ada8560f",
