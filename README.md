@@ -6,39 +6,7 @@ This is a hard fork of [gildas/bitbucket-cli](https://github.com/gildas/bitbucke
 
 ## Installation
 
-All packages and binaries are published to [GitHub Releases](https://github.com/delabrcd/bitbucket-cli/releases).
-
-### Debian / Ubuntu
-
-Download the `.deb` package from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) and install it with `dpkg`:
-
-```bash
-sudo dpkg -i bitbucket-cli_0.18.2_amd64.deb
-```
-
-An `arm64` package (`bitbucket-cli_0.18.2_arm64.deb`) is also available on the same Releases page.
-
-### Fedora / RHEL
-
-Download the `.rpm` package from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) and install it with `rpm` or `dnf`:
-
-```bash
-sudo rpm -i bitbucket-cli-0.18.2.x86_64.rpm
-# or
-sudo dnf install ./bitbucket-cli-0.18.2.x86_64.rpm
-```
-
-### Arch Linux
-
-Download the `.pkg.tar.zst` package from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) and install it with `pacman`:
-
-```bash
-sudo pacman -U bitbucket-cli-0.18.2-x86_64.pkg.tar.zst
-```
-
-## Linux package repositories (auto-updates)
-
-Add one of the repositories below to keep `bb` up to date automatically. Once configured, normal `apt upgrade` / `dnf upgrade` / `pacman -Syu` will pull new releases without any manual download.
+The recommended way to install on Linux is to add the package repository below so `bb` stays up to date with your normal `apt upgrade` / `dnf upgrade` / `pacman -Syu`. The Windows installer and standalone binaries are on [GitHub Releases](https://github.com/delabrcd/bitbucket-cli/releases), and these instructions are also published at <https://delabrcd.github.io/bitbucket-cli/>.
 
 ### Debian / Ubuntu (apt)
 
@@ -75,6 +43,21 @@ Then install:
 
 ```bash
 sudo pacman -Sy bitbucket-cli
+```
+
+### One-off package downloads (no auto-update)
+
+Prefer the repositories above for automatic updates. For a manual install, download the package for your distribution from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) (replace `<version>` with the latest, and `amd64`/`x86_64` with `arm64`/`aarch64` as needed):
+
+```bash
+# Debian / Ubuntu
+sudo dpkg -i bitbucket-cli_<version>_amd64.deb
+
+# Fedora / RHEL
+sudo dnf install ./bitbucket-cli-<version>.x86_64.rpm
+
+# Arch Linux
+sudo pacman -U bitbucket-cli-<version>-x86_64.pkg.tar.zst
 ```
 
 ### Windows
