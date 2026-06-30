@@ -20,6 +20,7 @@ import (
 	"github.com/gildas/bitbucket-cli/cmd/project"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/gildas/bitbucket-cli/cmd/runner"
 	sshkey "github.com/gildas/bitbucket-cli/cmd/ssh-key"
 	"github.com/gildas/bitbucket-cli/cmd/tag"
 	"github.com/gildas/bitbucket-cli/cmd/user"
@@ -107,6 +108,7 @@ func init() {
 	RootCmd.AddCommand(pipeline.Command)
 	RootCmd.AddCommand(pullrequest.Command)
 	RootCmd.AddCommand(repository.Command)
+	RootCmd.AddCommand(runner.Command)
 	RootCmd.AddCommand(user.Command)
 	RootCmd.AddCommand(workspace.Command)
 	RootCmd.AddCommand(gpgkey.Command)

@@ -1,0 +1,22 @@
+{
+  "type": "pipeline_runner",
+  "uuid": "{670ea7af-1234-4f6b-9bd8-a8aef6c1f5e6}",
+  "name": "linux-builder-01",
+  "labels": ["self.hosted", "linux"],
+  "state": {
+    "status": "ONLINE",
+    "version": {
+      "current": "5.9.0"
+    },
+    "cordoned": false,
+    "updated_on": "2026-06-01T12:00:00.000000Z"
+  },
+  "created_on": "2026-05-01T08:30:00.000000Z",
+  "updated_on": "2026-06-01T12:00:00.000000Z",
+  "oauth_client": {
+    "id": "abc123",
+    "secret": "sshhh-secret",
+    "token_endpoint": "https://auth.atlassian.com/oauth/token",
+    "audience": "api.atlassian.com"
+  }
+}

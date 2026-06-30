@@ -1,6 +1,10 @@
 
 Unreleased
 =============
+2026-06-30
+
+* feat: add `bb runner` command to manage Pipelines self-hosted runners (list/get/create/delete) at repository or workspace scope
+
 2026-06-26
 
 * change: pullrequest comment --line now anchors the NEW (post-change) diff side (alias of --to) instead of --from; matches the common added-line case. Use --from explicitly for removed lines

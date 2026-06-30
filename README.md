@@ -1185,6 +1185,39 @@ You can get the logs of a step with the `bb pipeline step log` command:
 bb pipeline step logs --pipeline 123456 {stepUUID}
 ```
 
+### Runners
+
+`bb runner` manages Pipelines self-hosted runners. By default it operates on the **current repository's** runners; pass `-W` / `--workspace-level` to operate on the **workspace's** shared runners instead. The repository and workspace are resolved the usual way (git config, profile defaults, or the `--repository`/`--workspace` global flags).
+
+Subcommands:
+
+- `bb runner list` (alias `ls`) — list runners for the current repository or workspace.
+- `bb runner get <runner-uuid>` (aliases `show`, `info`, `display`) — show details for one runner. The UUID may be passed with or without surrounding braces.
+- `bb runner create --name <name> [--label <label> ...]` — create a runner and print its one-time OAuth credentials (client id + secret). The `--label` flag is repeatable; include exactly one OS label (`linux`, `linux.arm64`, `linux.shell`, `windows`, or `macos`). `self.hosted` is added automatically if omitted, and up to 10 custom labels are allowed.
+- `bb runner delete <runner-uuid...>` (aliases `remove`, `rm`) — delete one or more runners by UUID.
+
+> **Note:** The OAuth client secret printed by `bb runner create` is shown **only once**. Capture it from the output (use `-o json`) immediately — it cannot be retrieved again.
+
+```bash
+# List runners for the current repository
+bb runner list
+
+# List workspace-level runners as JSON
+bb runner list --workspace-level -o json
+
+# Show a specific runner
+bb runner get '{12345678-1234-1234-1234-1234567890ab}'
+
+# Create a repository-scoped linux runner
+bb runner create --name "linux-builder-01" --label linux --label self.hosted
+
+# Create a workspace-scoped macOS runner and capture credentials as JSON
+bb runner create -W --name "shared-mac" --label macos -o json
+
+# Delete a runner
+bb runner delete '{12345678-1234-1234-1234-1234567890ab}'
+```
+
 ### GPG Keys
 
 You can list GPG keys with the `bb key list` command:
