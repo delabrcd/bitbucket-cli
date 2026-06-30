@@ -62,6 +62,15 @@ You can download the latest version of `bb` from the [Releases page](https://git
 
 Once you get the `bb` executable, you can install/copy it anywhere in your `$PATH`.
 
+### Updating
+
+```bash
+bb upgrade          # update bb to the latest release
+bb upgrade --check  # only check whether a newer version is available
+```
+
+`bb upgrade` self-updates manual and macOS installs (downloading the latest release and verifying its checksum) and launches the latest installer on Windows. If `bb` was installed from a Linux package repository (see above), update it with your package manager instead (`apt`/`dnf`/`pacman`); `bb upgrade` will point you there.
+
 ## Usage
 
 `bb` is a modern command line interface. It uses subcommands to perform actions. You can get help on any subcommand by running `bb <subcommand> --help`.
