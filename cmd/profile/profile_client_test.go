@@ -50,6 +50,7 @@ func (suite *ProfileSuite) TestGetAll_OriginalQueryIsPreservedForNextMissingPara
 	cmd := &cobra.Command{}
 	cmd.Flags().String("profile", "", "")
 	cmd.Flags().Int("page-length", 0, "")
+	cmd.SetContext(suite.Context)
 	items, err := profile.GetAll[testItem](suite.Context, cmd, server.URL+"/pipelines?pagelen=1&q="+url.QueryEscape(filter))
 	suite.Require().NoError(err)
 	suite.Require().Len(items, 2)
@@ -94,6 +95,7 @@ func (suite *ProfileSuite) TestGetAll_DoesNotOverwriteExistingNextParams() {
 	cmd := &cobra.Command{}
 	cmd.Flags().String("profile", "", "")
 	cmd.Flags().Int("page-length", 0, "")
+	cmd.SetContext(suite.Context)
 	items, err := profile.GetAll[testItem](suite.Context, cmd, server.URL+"/pipelines?pagelen=1&q="+url.QueryEscape(originalFilter))
 	suite.Require().NoError(err)
 	suite.Require().Len(items, 2)
