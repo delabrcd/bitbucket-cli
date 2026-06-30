@@ -4,6 +4,7 @@ Unreleased
 2026-06-30
 
 * feat: add `bb runner` command to manage Pipelines self-hosted runners (list/get/create/delete) at repository or workspace scope
+* feat: add pipeline log shortcuts — `bb pipeline logs` (latest-pipeline + failed-step defaults) and `--failed`/`--all`/`--step` on step logs
 
 2026-06-26
 

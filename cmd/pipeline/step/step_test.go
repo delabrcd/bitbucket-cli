@@ -87,3 +87,28 @@ func (suite *PipelineStepSuite) TestCanUnmarshal() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(step)
 }
+
+func (suite *PipelineStepSuite) TestIsFailedReturnsTrueForFailed() {
+	s := step.Step{State: step.StepState{Result: &step.StepResult{Name: "FAILED"}}}
+	suite.Assert().True(s.IsFailed())
+}
+
+func (suite *PipelineStepSuite) TestIsFailedReturnsTrueForError() {
+	s := step.Step{State: step.StepState{Result: &step.StepResult{Name: "ERROR"}}}
+	suite.Assert().True(s.IsFailed())
+}
+
+func (suite *PipelineStepSuite) TestIsFailedReturnsFalseForSuccessful() {
+	s := step.Step{State: step.StepState{Result: &step.StepResult{Name: "SUCCESSFUL"}}}
+	suite.Assert().False(s.IsFailed())
+}
+
+func (suite *PipelineStepSuite) TestIsFailedReturnsFalseForStopped() {
+	s := step.Step{State: step.StepState{Result: &step.StepResult{Name: "STOPPED"}}}
+	suite.Assert().False(s.IsFailed())
+}
+
+func (suite *PipelineStepSuite) TestIsFailedReturnsFalseForNilResult() {
+	s := step.Step{State: step.StepState{Result: nil}}
+	suite.Assert().False(s.IsFailed())
+}

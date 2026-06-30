@@ -1179,11 +1179,37 @@ You can get the details of a step with the `bb pipeline step get` or `bb pipelin
 bb pipeline step get --pipeline 123456 {stepUUID}
 ```
 
-You can get the logs of a step with the `bb pipeline step log` command:
+You can get the logs of a step with the `bb pipeline step logs` command. The positional step argument (UUID or name) is optional; use `--step <uuid-or-name>`, `--failed`, or `--all` to control which step(s) are shown. `--step`, `--failed`, and `--all` are mutually exclusive.
 
 ```bash
 bb pipeline step logs --pipeline 123456 {stepUUID}
+bb pipeline step logs --pipeline 123456 --step "Build and Test"
+bb pipeline step logs --pipeline 123456 --failed
+bb pipeline step logs --pipeline 123456 --all
 ```
+
+When no step selector is given and the pipeline has more than one step, the failed step(s) are shown automatically (with a notice on stderr); if there are no failed steps an error lists the available steps so you can pick one.
+
+For quick access to step logs without descending into `step`, use `bb pipeline logs` (alias `log`). The build number is optional — omitting it uses the most recently created pipeline and prints `Using latest pipeline #N` to stderr. The same `--step`, `--failed`, and `--all` flags apply.
+
+```bash
+# Failed step of the most recent pipeline (no build number needed)
+bb pipeline logs --failed
+
+# Smart default for build 242: failed step, or the sole step if none failed
+bb pipeline logs 242
+
+# Every step of build 242, each preceded by a separator banner
+bb pipeline logs 242 --all
+
+# One specific step by name
+bb pipeline logs 242 --step "Unit tests"
+
+# Same as above, longer form
+bb pipeline step logs --pipeline 242 --step "Unit tests"
+```
+
+When more than one step's log is shown (e.g. with `--all`), each is preceded by a banner line (`=====…`, ` Step: <name>   State: <state>`, `=====…`). Steps that have no log (e.g. `NOT_RUN`) are reported to stderr and skipped rather than treated as errors.
 
 ### Runners
 
