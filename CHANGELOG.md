@@ -1,10 +1,14 @@
 
 Unreleased
 =============
+
+0.19.2
+=============
 2026-06-30
 
 * feat: add `bb upgrade` (aliases `update`, `self-update`) to self-update bb — on Windows it downloads and launches the latest installer; on macOS / manual installs it replaces the binary after verifying its SHA-256; on a package-managed Linux install it points you at apt/dnf/pacman
 * feat: publish GPG-signed **apt, dnf/yum, and pacman** repositories to GitHub Pages so Linux installs auto-update via the system package manager (see the README); a `repo-test` CI workflow installs bb from the repos in Debian/Fedora/Arch containers
+* docs: lead the install instructions with the auto-updating package repositories and link the published install page
 
 0.19.1
 =============
