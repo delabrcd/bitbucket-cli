@@ -49,10 +49,10 @@ go install github.com/delabrcd/bitbucket-cli@latest
 mv $GOPATH/bin/bitbucket-cli $GOPATH/bin/bb
 ```
 
-This method also allows you to install `bb` from the development (`dev`) branch with:
+This method also allows you to install `bb` from the latest `main` with:
 
 ```bash
-go install github.com/delabrcd/bitbucket-cli@dev
+go install github.com/delabrcd/bitbucket-cli@main
 mv $GOPATH/bin/bitbucket-cli $GOPATH/bin/bb
 ```
 
