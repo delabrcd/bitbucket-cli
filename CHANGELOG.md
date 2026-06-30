@@ -1,6 +1,9 @@
 
 Unreleased
 =============
+
+0.19.0
+=============
 2026-06-30
 
 * feat: add `bb runner` command to manage Pipelines self-hosted runners (list/get/create/delete) at repository or workspace scope
