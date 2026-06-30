@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 # Build the apt/dnf/pacman repositories with an EPHEMERAL signing key and verify
-# that Debian, Fedora, and Arch containers can add the repo and install bb from
-# it. Validates packaging/linux/build-repos.sh end-to-end without the production
-# key. Usable locally and in CI (needs docker, gpg, python3, gh).
+# that distro containers can add the repo and install bb from it. Validates
+# packaging/linux/build-repos.sh end-to-end without the production key.
 #
-#   TAG=v0.19.1 ./packaging/linux/test-repos.sh   # test against a release's packages
-#   DIST_DIR=./dist ./packaging/linux/test-repos.sh  # test against local packages
+# Default (no env): tests debian:stable, fedora:latest, archlinux:latest.
+# Single-image (CI matrix): set TEST_FAMILY=apt|dnf|pacman and TEST_IMAGE=<image>.
+#
+#   TAG=v0.19.2 ./packaging/linux/test-repos.sh
+#   DIST_DIR=./dist ./packaging/linux/test-repos.sh
+#   TEST_FAMILY=apt TEST_IMAGE=ubuntu:24.04 ./packaging/linux/test-repos.sh
+#
+# Needs: docker, gpg, python3, gh.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -18,10 +23,52 @@ chmod 700 "$GNUPGHOME"
 
 cleanup() {
   [ -n "${SERVER_PID:-}" ] && kill "$SERVER_PID" 2>/dev/null || true
-  rm -rf "$WORK"
+  docker run --rm -v "$WORK":"$WORK" alpine rm -rf "$WORK" 2>/dev/null || rm -rf "$WORK" 2>/dev/null || true
 }
 trap cleanup EXIT
 
+# --- install tests, one per package family ---
+
+test_apt() {
+  local image="$1"
+  echo "===== apt: $image ====="
+  docker run --rm --network host "$image" bash -c "
+    set -e; export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null
+    curl -fsSL $BASE_URL/bitbucket-cli.gpg | tee /usr/share/keyrings/bitbucket-cli.gpg >/dev/null
+    echo 'deb [signed-by=/usr/share/keyrings/bitbucket-cli.gpg] $BASE_URL/deb ./' > /etc/apt/sources.list.d/bitbucket-cli.list
+    apt-get update -qq && apt-get install -y -qq bitbucket-cli
+    bb --version
+  "
+}
+
+test_dnf() {
+  local image="$1"
+  echo "===== dnf: $image ====="
+  docker run --rm --network host "$image" bash -c "
+    set -e
+    command -v curl >/dev/null || dnf install -y -q --allowerasing curl >/dev/null
+    curl -fsSL -o /etc/yum.repos.d/bitbucket-cli.repo $BASE_URL/rpm/bitbucket-cli.repo
+    dnf install -y bitbucket-cli
+    bb --version
+  "
+}
+
+test_pacman() {
+  local image="$1"
+  echo "===== pacman: $image ====="
+  docker run --rm --network host "$image" bash -c "
+    set -e
+    pacman-key --init >/dev/null 2>&1
+    curl -fsSL $BASE_URL/bitbucket-cli.gpg | pacman-key --add - >/dev/null 2>&1
+    pacman-key --lsign-key $FPR >/dev/null 2>&1
+    printf '\n[bitbucket-cli]\nSigLevel = Required\nServer = $BASE_URL/arch/\$arch\n' >> /etc/pacman.conf
+    pacman -Sy --noconfirm bitbucket-cli >/dev/null
+    bb --version
+  "
+}
+
+# --- ephemeral signing key ---
 echo "==> Generating ephemeral test signing key"
 cat > "$WORK/params" <<'EOF'
 %no-protection
@@ -37,7 +84,7 @@ gpg --batch --gen-key "$WORK/params" 2>/dev/null
 FPR="$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/{print $10; exit}')"
 echo "    test key: $FPR"
 
-# Obtain packages: explicit DIST_DIR, else download a release's assets.
+# --- packages: explicit DIST_DIR, else download a release's assets ---
 if [ -z "${DIST_DIR:-}" ]; then
   TAG="${TAG:-$(gh release view --repo delabrcd/bitbucket-cli --json tagName -q .tagName)}"
   echo "==> Downloading release $TAG packages"
@@ -57,42 +104,18 @@ python3 -m http.server "$PORT" --directory "$OUT" >/dev/null 2>&1 &
 SERVER_PID=$!
 sleep 1
 
-echo
-echo "================ Debian (apt) ================"
-docker run --rm --network host debian:stable bash -c "
-  set -e
-  export DEBIAN_FRONTEND=noninteractive
-  apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null
-  curl -fsSL $BASE_URL/bitbucket-cli.gpg | tee /usr/share/keyrings/bitbucket-cli.gpg >/dev/null
-  echo 'deb [signed-by=/usr/share/keyrings/bitbucket-cli.gpg] $BASE_URL/deb ./' > /etc/apt/sources.list.d/bitbucket-cli.list
-  apt-get update -qq
-  apt-get install -y -qq bitbucket-cli
-  bb --version
-"
-echo "Debian: OK"
+if [ -n "${TEST_FAMILY:-}" ] && [ -n "${TEST_IMAGE:-}" ]; then
+  case "$TEST_FAMILY" in
+    apt)    test_apt "$TEST_IMAGE" ;;
+    dnf)    test_dnf "$TEST_IMAGE" ;;
+    pacman) test_pacman "$TEST_IMAGE" ;;
+    *) echo "unknown TEST_FAMILY: $TEST_FAMILY" >&2; exit 2 ;;
+  esac
+else
+  test_apt "debian:stable"
+  test_dnf "fedora:latest"
+  test_pacman "archlinux:latest"
+fi
 
 echo
-echo "================ Fedora (dnf) ================"
-docker run --rm --network host fedora:latest bash -c "
-  set -e
-  curl -fsSL -o /etc/yum.repos.d/bitbucket-cli.repo $BASE_URL/rpm/bitbucket-cli.repo
-  dnf install -y bitbucket-cli
-  bb --version
-"
-echo "Fedora: OK"
-
-echo
-echo "================ Arch (pacman) ================"
-docker run --rm --network host archlinux:latest bash -c "
-  set -e
-  pacman-key --init
-  curl -fsSL $BASE_URL/bitbucket-cli.gpg | pacman-key --add -
-  pacman-key --lsign-key $FPR
-  printf '\n[bitbucket-cli]\nSigLevel = Required\nServer = $BASE_URL/arch/\$arch\n' >> /etc/pacman.conf
-  pacman -Sy --noconfirm bitbucket-cli
-  bb --version
-"
-echo "Arch: OK"
-
-echo
-echo "==> ALL REPO INSTALL TESTS PASSED"
+echo "==> REPO INSTALL TESTS PASSED"

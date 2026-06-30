@@ -46,3 +46,17 @@ jobs:
         run: gh release upload "${GITHUB_REF_NAME}" dist/*-setup.exe --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Rebuild and publish the signed apt/dnf/pacman repos for this tag. Done here
+  # (not via pages.yml's release trigger) because releases created by
+  # GITHUB_TOKEN do not fire the `release` event.
+  pages:
+    needs: goreleaser
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets: inherit

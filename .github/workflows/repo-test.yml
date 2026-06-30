@@ -2,7 +2,7 @@ name: repo-test
 
 # Validates that the apt/dnf/pacman repositories built by build-repos.sh are
 # installable, by building them with an ephemeral key and installing bb inside
-# Debian/Fedora/Arch containers. Runs when the packaging changes.
+# a matrix of distro versions. Runs when the packaging changes.
 on:
   pull_request:
     paths:
@@ -21,6 +21,22 @@ permissions:
 jobs:
   install-test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { family: apt, image: "ubuntu:20.04" }
+          - { family: apt, image: "ubuntu:22.04" }
+          - { family: apt, image: "ubuntu:24.04" }
+          - { family: apt, image: "debian:11" }
+          - { family: apt, image: "debian:12" }
+          - { family: dnf, image: "fedora:40" }
+          - { family: dnf, image: "fedora:41" }
+          - { family: dnf, image: "fedora:latest" }
+          - { family: dnf, image: "almalinux:8" }
+          - { family: dnf, image: "almalinux:9" }
+          - { family: pacman, image: "archlinux:latest" }
+    name: ${{ matrix.image }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,7 +44,9 @@ jobs:
       - name: Install repo-build tooling
         run: sudo apt-get update && sudo apt-get install -y apt-utils createrepo-c rpm gnupg zstd
 
-      - name: Build repos and install bb in containers
+      - name: Build repos and install bb in ${{ matrix.image }}
         run: bash packaging/linux/test-repos.sh
         env:
+          TEST_FAMILY: ${{ matrix.family }}
+          TEST_IMAGE: ${{ matrix.image }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
