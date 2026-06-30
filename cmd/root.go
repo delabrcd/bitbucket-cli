@@ -25,6 +25,7 @@ import (
 	"github.com/delabrcd/bitbucket-cli/cmd/skill"
 	sshkey "github.com/delabrcd/bitbucket-cli/cmd/ssh-key"
 	"github.com/delabrcd/bitbucket-cli/cmd/tag"
+	"github.com/delabrcd/bitbucket-cli/cmd/upgrade"
 	"github.com/delabrcd/bitbucket-cli/cmd/user"
 	"github.com/delabrcd/bitbucket-cli/cmd/workspace"
 	"github.com/gildas/go-core"
@@ -111,6 +112,7 @@ func init() {
 	RootCmd.AddCommand(pullrequest.Command)
 	RootCmd.AddCommand(repository.Command)
 	RootCmd.AddCommand(runner.Command)
+	RootCmd.AddCommand(upgrade.Command)
 	RootCmd.AddCommand(skill.Command)
 	RootCmd.AddCommand(user.Command)
 	RootCmd.AddCommand(workspace.Command)
