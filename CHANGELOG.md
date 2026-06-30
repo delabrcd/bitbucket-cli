@@ -1,6 +1,10 @@
 
 Unreleased
 =============
+2026-06-30
+
+* change: version is now derived from the git tag at build time (ldflags / `go install` build info); no version is hardcoded in the source
+* build: replace the Makefiles with a `Taskfile.yml` (go-task) for developer tasks; releases remain GoReleaser, CI remains GitHub Actions
 
 0.19.0
 =============

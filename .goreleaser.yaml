@@ -24,15 +24,11 @@ builds:
       - amd64
       - arm64
     mod_timestamp: "{{ .CommitTimestamp }}"
-    # Note: main.branch is intentionally left unset. version.go appends a
-    # "+stamp.commit" suffix when the branch starts with dev/feature, which would
-    # taint release versions (this fork tags from dev). Leaving it empty yields a
-    # clean version string driven by GoReleaser's {{ .Version }}.
+    # Version is tag-based: GoReleaser injects the tag here; version.go has no
+    # hardcoded version and falls back to build info / "dev" when unset.
     ldflags:
       - -s -w
       - -X main.VERSION={{ .Version }}
-      - -X main.commit={{ .ShortCommit }}
-      - -X main.stamp={{ .Date }}
 
 archives:
   - id: bb

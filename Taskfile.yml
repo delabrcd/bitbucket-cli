@@ -1,0 +1,59 @@
+# Task runner for development. Install: https://taskfile.dev
+#   go install github.com/go-task/task/v3/cmd/task@latest
+# Releases are produced by GoReleaser (.goreleaser.yaml) on git tags; CI runs in
+# .github/workflows/ci.yml. This file is just developer convenience.
+version: "3"
+
+vars:
+  BINARY: bb
+  # Version is derived from the git tag at build time (never hardcoded).
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null || echo dev
+  GOPATH:
+    sh: go env GOPATH
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  build:
+    desc: Build the bb binary into the working directory
+    cmds:
+      - go build -ldflags "-s -w -X main.VERSION={{.VERSION}}" -o {{.BINARY}} .
+
+  install:
+    desc: Build and install bb into $GOPATH/bin
+    cmds:
+      - go build -ldflags "-s -w -X main.VERSION={{.VERSION}}" -o "{{.GOPATH}}/bin/{{.BINARY}}" .
+
+  test:
+    desc: Run the test suite
+    cmds:
+      - go test ./...
+
+  fmt:
+    desc: Format the code with gofmt
+    cmds:
+      - gofmt -w .
+
+  lint:
+    desc: Run go vet and check formatting
+    cmds:
+      - go vet ./...
+      - test -z "$(gofmt -l .)"
+
+  tidy:
+    desc: Tidy go.mod / go.sum
+    cmds:
+      - go mod tidy
+
+  snapshot:
+    desc: Build a local snapshot release with GoReleaser (no publish)
+    cmds:
+      - goreleaser release --snapshot --clean --skip=publish
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - rm -rf dist {{.BINARY}}

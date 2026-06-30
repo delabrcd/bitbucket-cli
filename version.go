@@ -1,18 +1,11 @@
 package main
 
-import "strings"
+import "runtime/debug"
 
-// commit contains the current git commit this code was built on and should be set via -ldflags
-var commit string
-
-// branch contains the git branch this code was built on and should be set via -ldflags
-var branch string
-
-// stamp contains the build date and should be set via -ldflags
-var stamp string
-
-// VERSION is the version of this application
-var VERSION = "0.19.0"
+// VERSION is injected at build time via -ldflags "-X main.VERSION=<tag>"
+// (see the Makefile and .goreleaser.yaml, which derive it from the git tag).
+// It is intentionally NOT hardcoded in the repository.
+var VERSION string
 
 // APP is the name of the application
 const APP = "bb"
@@ -20,10 +13,19 @@ const APP = "bb"
 // PACKAGE is the name of the package (used to create artifacts)
 const PACKAGE = "bitbucket-cli"
 
-// Version gets the current version of the application
+// Version gets the current version of the application.
+//
+// Precedence: the build-time -ldflags value, then the module version recorded
+// in the build info (set when installed via `go install <module>@<version>`),
+// then "dev" for a plain local build.
 func Version() string {
-	if strings.HasPrefix(strings.ToLower(branch), "dev") || strings.HasPrefix(strings.ToLower(branch), "feature") {
-		return VERSION + "+" + stamp + "." + commit
+	if VERSION != "" {
+		return VERSION
 	}
-	return VERSION
+	if info, ok := debug.ReadBuildInfo(); ok {
+		if v := info.Main.Version; v != "" && v != "(devel)" {
+			return v
+		}
+	}
+	return "dev"
 }
