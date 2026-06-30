@@ -1211,6 +1211,21 @@ bb pipeline step logs --pipeline 242 --step "Unit tests"
 
 When more than one step's log is shown (e.g. with `--all`), each is preceded by a banner line (`=====…`, ` Step: <name>   State: <state>`, `=====…`). Steps that have no log (e.g. `NOT_RUN`) are reported to stderr and skipped rather than treated as errors.
 
+`bb pipeline watch` is the Bitbucket analog of `gh run watch`. It polls a pipeline on a configurable interval and re-renders its step states in place (or appended when piped) until the pipeline reaches a terminal state, then prints a final summary. The build number is optional — omitting it watches the **latest** pipeline and prints `Watching latest pipeline #N` to stderr. Each refresh shows the pipeline's overall state and a per-step table (STEP / STATE / DURATION); finished steps show their duration, the running step shows elapsed time, and not-yet-started steps show `-`. States are color-coded on a TTY.
+
+Flags:
+- `--interval <duration>` — refresh interval (Go duration syntax, e.g. `10s`, `1m`); default `5s`, minimum `2s`.
+- `--exit-status` — exit with a non-zero status if the pipeline did not finish SUCCESSFUL (handy in scripts); without this flag the command always exits 0 regardless of pipeline result.
+
+On completion it prints e.g. `Pipeline #242 finished: COMPLETED (FAILED). See logs with: bb pipeline logs 242 --failed` — the failed-logs hint only appears when the pipeline did not succeed.
+
+```bash
+bb pipeline watch              # watch the latest pipeline
+bb pipeline watch 242          # watch build 242
+bb pipeline watch --exit-status   # non-zero exit if it fails (handy in scripts)
+bb pipeline watch 242 --interval 10s
+```
+
 ### Runners
 
 `bb runner` manages Pipelines self-hosted runners. By default it operates on the **current repository's** runners; pass `-W` / `--workspace-level` to operate on the **workspace's** shared runners instead. The repository and workspace are resolved the usual way (git config, profile defaults, or the `--repository`/`--workspace` global flags).

@@ -5,6 +5,7 @@ Unreleased
 
 * feat: add `bb runner` command to manage Pipelines self-hosted runners (list/get/create/delete) at repository or workspace scope
 * feat: add pipeline log shortcuts — `bb pipeline logs` (latest-pipeline + failed-step defaults) and `--failed`/`--all`/`--step` on step logs
+* feat: add `bb pipeline watch` to follow a pipeline until it completes (gh run watch analog; `--interval`/`--exit-status`)
 
 2026-06-26
 
