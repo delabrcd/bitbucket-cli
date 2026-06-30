@@ -6,6 +6,8 @@ Unreleased
 * feat: add `bb runner` command to manage Pipelines self-hosted runners (list/get/create/delete) at repository or workspace scope
 * feat: add pipeline log shortcuts — `bb pipeline logs` (latest-pipeline + failed-step defaults) and `--failed`/`--all`/`--step` on step logs
 * feat: add `bb pipeline watch` to follow a pipeline until it completes (gh run watch analog; `--interval`/`--exit-status`)
+* feat: add `bb skill install` to install the bundled agent skill into a Claude skills directory (auto-detects project/personal `.claude/skills`)
+* feat: add `bb completion install` to install shell completions (bash/zsh/fish) into the shell's completion directory
 
 2026-06-26
 

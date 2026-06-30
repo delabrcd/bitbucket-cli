@@ -1411,6 +1411,46 @@ On macOS, you can add the completion to the brew functions:
 bb completion zsh > "$(brew --prefix)/share/zsh/site-functions/_bb"
 ```
 
+#### Installing completions automatically
+
+`bb completion install` installs the generated completion script into the directory your shell loads completions from, so you do not need to find the right path yourself.
+
+The shell is detected from `$SHELL` unless you pass `--shell bash|zsh|fish`. The target directory is auto-detected per shell:
+
+- **bash** → `${BASH_COMPLETION_USER_DIR:-${XDG_DATA_HOME:-~/.local/share}}/bash-completion/completions/bb`
+- **zsh** → `${XDG_DATA_HOME:-~/.local/share}/zsh/site-functions/_bb` (the command also prints a reminder to add that directory to `$fpath` if it is not already there)
+- **fish** → `${XDG_CONFIG_HOME:-~/.config}/fish/completions/bb.fish`
+
+Use `--dir <path>` to override the auto-detected directory. `--dry-run` shows the install path without writing anything. After installing, start a new shell (or source your rc file) for completions to take effect.
+
+```bash
+bb completion install                     # auto-detect shell and target dir
+bb completion install --shell zsh         # force zsh, auto-detect dir
+bb completion install --dir ~/.zsh/completions --shell zsh
+bb completion install --dry-run           # preview without writing
+```
+
+### Agent skill
+
+`bb skill install` installs `bb`'s bundled agent skill — a `SKILL.md` that teaches an AI agent (such as Claude Code) how to drive `bb` — into a Claude skills directory.
+
+**Auto-detection:** the command searches upward from the current directory (stopping at `$HOME`) for a project-level `.claude/skills` directory; if none is found it falls back to the personal `${CLAUDE_CONFIG_DIR:-~/.claude}/skills`. It prints which directories it detected.
+
+**Flags:**
+
+- `--dir <path>` — override auto-detection and install into a specific directory.
+- `--force` — overwrite an existing `SKILL.md`. Without this flag the command exits with an error if a skill file is already present, so a customized skill is never silently clobbered.
+- `--dry-run` — show where the file would be installed without writing anything.
+
+The skill is always installed as `<skills-dir>/bitbucket-cli/SKILL.md`.
+
+```bash
+bb skill install                          # auto-detect project or personal skills dir
+bb skill install --dir .claude/skills     # install into a specific directory
+bb skill install --force                  # overwrite an existing skill file
+bb skill install --dry-run                # preview without writing
+```
+
 ### Obtaining logs for debugging
 
 If you encounter an issue with `bb`, you can obtain logs to help with debugging.
