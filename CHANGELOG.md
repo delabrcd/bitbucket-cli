@@ -1,6 +1,9 @@
 
 Unreleased
 =============
+
+0.19.1
+=============
 2026-06-30
 
 * change: version is now derived from the git tag at build time (ldflags / `go install` build info); no version is hardcoded in the source
