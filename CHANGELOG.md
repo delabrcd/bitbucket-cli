@@ -2,6 +2,10 @@
 Unreleased
 =============
 
+0.19.3
+=============
+2026-06-30
+
 * ci: release workflow now republishes the signed Linux repos automatically (calls the Pages workflow as a reusable workflow, fixing the GITHUB_TOKEN event-suppression gap)
 * ci: repo install tests now run a matrix of distro versions (Ubuntu 20.04/22.04/24.04, Debian 11/12, Fedora 40/41/latest, AlmaLinux 8/9, Arch)
 
