@@ -5,6 +5,7 @@ Unreleased
 
 * change: version is now derived from the git tag at build time (ldflags / `go install` build info); no version is hardcoded in the source
 * build: replace the Makefiles with a `Taskfile.yml` (go-task) for developer tasks; releases remain GoReleaser, CI remains GitHub Actions
+* build: replace the Windows MSI (wixl) with an NSIS installer (`…-setup.exe`) — a real setup wizard with an opt-in PATH entry; CI now compiles the installer on every PR
 
 0.19.0
 =============

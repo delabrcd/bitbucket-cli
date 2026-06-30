@@ -38,3 +38,27 @@ jobs:
 
       - name: Test
         run: go test ./...
+
+  windows-installer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Install NSIS + EnVar plugin
+        run: |
+          sudo apt-get update && sudo apt-get install -y nsis
+          curl -fsSL -o /tmp/EnVar.zip https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip
+          sudo unzip -o /tmp/EnVar.zip -d /usr/share/nsis
+
+      - name: Compile installer
+        run: |
+          mkdir -p dist/bb_windows_amd64_v1
+          GOOS=windows GOARCH=amd64 go build -o dist/bb_windows_amd64_v1/bb.exe .
+          bash packaging/windows/build-nsis.sh ci-check
+          test -f dist/bitbucket-cli_ci-check_windows_amd64-setup.exe

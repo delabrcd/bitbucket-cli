@@ -22,8 +22,11 @@ jobs:
         with:
           go-version: stable
 
-      - name: Install MSI tooling (wixl)
-        run: sudo apt-get update && sudo apt-get install -y wixl
+      - name: Install NSIS + EnVar plugin
+        run: |
+          sudo apt-get update && sudo apt-get install -y nsis
+          curl -fsSL -o /tmp/EnVar.zip https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip
+          sudo unzip -o /tmp/EnVar.zip -d /usr/share/nsis
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
@@ -34,12 +37,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # MSI is built from the dist/ binaries (GoReleaser OSS can't build MSI) and
-      # attached to the release GoReleaser just created.
-      - name: Build Windows MSI
-        run: bash packaging/windows/build-msi.sh "${GITHUB_REF_NAME#v}"
+      # GoReleaser OSS can't build a Windows installer; build it from the dist/
+      # binaries with NSIS and attach it to the release GoReleaser just created.
+      - name: Build Windows installer (NSIS)
+        run: bash packaging/windows/build-nsis.sh "${GITHUB_REF_NAME#v}"
 
-      - name: Upload Windows MSI
-        run: gh release upload "${GITHUB_REF_NAME}" dist/*.msi --clobber
+      - name: Upload Windows installer
+        run: gh release upload "${GITHUB_REF_NAME}" dist/*-setup.exe --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
