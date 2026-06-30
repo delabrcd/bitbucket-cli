@@ -48,10 +48,10 @@ func TestCanGetRepositoryNameWithHTTPS(t *testing.T) {
 	bare = false
 	logallrefupdates = true
 [remote "origin"]
-	url = https://github.com/delabrcd/bitbucket-cli.git
+	url = https://bitbucket.org/gildas_cherruel/bb.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "alternate"]
-	url = https://github.com/delabrcd/bitbucket-cli
+	url = https://bitbucket.org/gildas_cherruel/bb
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
@@ -110,10 +110,10 @@ func TestCanGetWorkspaceNameWithHTTPS(t *testing.T) {
 	bare = false
 	logallrefupdates = true
 [remote "origin"]
-	url = https://github.com/delabrcd/bitbucket-cli.git
+	url = https://bitbucket.org/gildas_cherruel/bb.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [remote "alternate"]
-	url = https://github.com/delabrcd/bitbucket-cli
+	url = https://bitbucket.org/gildas_cherruel/bb
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
