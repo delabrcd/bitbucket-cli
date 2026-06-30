@@ -12,6 +12,7 @@ import (
 	"github.com/gildas/bitbucket-cli/cmd/cache"
 	"github.com/gildas/bitbucket-cli/cmd/commit"
 	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/gildas/bitbucket-cli/cmd/completion"
 	"github.com/gildas/bitbucket-cli/cmd/component"
 	"github.com/gildas/bitbucket-cli/cmd/gpg-key"
 	"github.com/gildas/bitbucket-cli/cmd/issue"
@@ -21,6 +22,7 @@ import (
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest"
 	"github.com/gildas/bitbucket-cli/cmd/repository"
 	"github.com/gildas/bitbucket-cli/cmd/runner"
+	"github.com/gildas/bitbucket-cli/cmd/skill"
 	sshkey "github.com/gildas/bitbucket-cli/cmd/ssh-key"
 	"github.com/gildas/bitbucket-cli/cmd/tag"
 	"github.com/gildas/bitbucket-cli/cmd/user"
@@ -109,11 +111,22 @@ func init() {
 	RootCmd.AddCommand(pullrequest.Command)
 	RootCmd.AddCommand(repository.Command)
 	RootCmd.AddCommand(runner.Command)
+	RootCmd.AddCommand(skill.Command)
 	RootCmd.AddCommand(user.Command)
 	RootCmd.AddCommand(workspace.Command)
 	RootCmd.AddCommand(gpgkey.Command)
 	RootCmd.AddCommand(sshkey.Command)
 	RootCmd.AddCommand(cache.Command)
+
+	// Attach our "install" subcommand to cobra's auto-generated "completion"
+	// command so it becomes "bb completion install".
+	RootCmd.InitDefaultCompletionCmd()
+	for _, command := range RootCmd.Commands() {
+		if command.Name() == "completion" {
+			command.AddCommand(completion.InstallCmd)
+			break
+		}
+	}
 
 	RootCmd.SilenceUsage = true // Do not show usage when an error occurs
 	cobra.OnInitialize(func() {
