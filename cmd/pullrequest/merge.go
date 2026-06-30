@@ -35,7 +35,7 @@ func init() {
 
 	mergeOptions.MergeStrategy = flags.NewEnumFlag("merge_commit", "squash", "fast_forward")
 	mergeCmd.Flags().StringVar(&mergeOptions.Message, "message", "", "Message of the merge")
-	mergeCmd.Flags().BoolVar(&mergeOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
+	mergeCmd.Flags().BoolVar(&mergeOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch after merge. Defaults to the repository's configured setting")
 	mergeCmd.Flags().BoolVar(&mergeOptions.Async, "async", false, "Perform the merge asynchronously")
 	mergeCmd.Flags().Var(mergeOptions.MergeStrategy, "merge-strategy", "Merge strategy to use (\"merge_commit\", \"squash\" or \"fast_forward\"). Defaults to the repository's configured default")
 	mergeCmd.Flags().BoolVar(&mergeOptions.SkipChecks, "skip-checks", false, "Skip the pre-merge build-status verification")
@@ -88,16 +88,18 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 
 	payload := struct {
 		Message           string `json:"message,omitempty"`
-		CloseSourceBranch bool   `json:"close_source_branch"`
+		CloseSourceBranch *bool  `json:"close_source_branch,omitempty"`
 		MergeStrategy     string `json:"merge_strategy,omitempty"`
 	}{
-		Message:           mergeOptions.Message,
-		CloseSourceBranch: mergeOptions.CloseSourceBranch,
+		Message: mergeOptions.Message,
 	}
-	// Only pin a merge strategy when the user picked one; otherwise omit it so
-	// Bitbucket applies the repository's configured default.
+	// Only pin merge strategy / close-source-branch when the user set them;
+	// otherwise omit so Bitbucket applies the repository's configured defaults.
 	if cmd.Flags().Changed("merge-strategy") {
 		payload.MergeStrategy = mergeOptions.MergeStrategy.String()
+	}
+	if cmd.Flags().Changed("close-source-branch") {
+		payload.CloseSourceBranch = &mergeOptions.CloseSourceBranch
 	}
 
 	log.Record("payload", payload).Infof("Merging pullrequest %s", pullRequestID)

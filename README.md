@@ -818,6 +818,25 @@ bb pullrequest merge 1
 
 If no pull request is provided, the command will try to merge the opened pull request with the current branch.
 
+#### Pre-merge build-status guard
+
+Before sending the merge request, `bb pr merge` fetches the build statuses on the PR's head commit and refuses to merge if any status is not `SUCCESSFUL` (i.e. `FAILED`, `STOPPED`, or `INPROGRESS`), printing the offending checks. This guard exists because the Bitbucket merge API evaluates the required-builds check against the token owner's permissions and silently honors an admin's override with no confirmation — so an admin token could otherwise merge a PR with a failed or in-progress build.
+
+- `--skip-checks` bypasses the verification (prints a warning to stderr).
+- If the PR has no resolvable head commit, or the commit has zero build statuses, the guard does not block and says so on stderr.
+- The check runs even under `--dry-run` (it is read-only) and reports the result.
+
+#### Merge strategy
+
+`--merge-strategy` now defaults to the repository's configured merge strategy. Omitting the flag lets Bitbucket apply its own default for the repository. Pass `--merge-strategy` only to force a specific strategy. Likewise, `--close-source-branch` now defaults to the repository's configured setting — it is only sent when you pass the flag (use `--close-source-branch` to force closing, `--close-source-branch=false` to force keeping):
+
+```bash
+bb pullrequest merge 42                              # use repo's configured default strategy
+bb pullrequest merge 42 --dry-run                    # check build statuses without merging
+bb pullrequest merge 42 --skip-checks                # merge even if builds are not all green
+bb pullrequest merge 42 --merge-strategy squash      # force a specific merge strategy
+```
+
 You can also merge the pull request asynchronously with the `--async` flag:
 
 ```bash

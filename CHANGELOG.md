@@ -8,6 +8,9 @@ Unreleased
 * feat: add `bb pipeline watch` to follow a pipeline until it completes (gh run watch analog; `--interval`/`--exit-status`)
 * feat: add `bb skill install` to install the bundled agent skill into a Claude skills directory (auto-detects project/personal `.claude/skills`)
 * feat: add `bb completion install` to install shell completions (bash/zsh/fish) into the shell's completion directory
+* feat: `bb pr merge` now verifies the head commit's build statuses and refuses to merge unless all pass (`--skip-checks` to override) — guards against admin tokens silently bypassing the required-builds gate
+* change: `bb pr merge --merge-strategy` now defaults to the repository's configured merge strategy instead of always `merge_commit`
+* change: `bb pr merge --close-source-branch` now defaults to the repository's configured setting (only sent when the flag is passed) instead of always forcing it off
 
 2026-06-26
 
