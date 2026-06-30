@@ -3,7 +3,7 @@ package pullrequest
 import (
 	"encoding/json"
 
-	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-errors"
 )
 

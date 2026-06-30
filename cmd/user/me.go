@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/delabrcd/bitbucket-cli/cmd/profile"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"

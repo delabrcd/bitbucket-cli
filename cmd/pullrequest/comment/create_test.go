@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gildas/bitbucket-cli/cmd/pullrequest/comment"
+	"github.com/delabrcd/bitbucket-cli/cmd/pullrequest/comment"
 	"github.com/gildas/go-logger"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/suite"

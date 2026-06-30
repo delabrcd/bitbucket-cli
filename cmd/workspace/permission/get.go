@@ -3,9 +3,9 @@ package permission
 import (
 	"fmt"
 
-	"github.com/gildas/bitbucket-cli/cmd/common"
-	"github.com/gildas/bitbucket-cli/cmd/profile"
-	wkcommon "github.com/gildas/bitbucket-cli/cmd/workspace/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/profile"
+	wkcommon "github.com/delabrcd/bitbucket-cli/cmd/workspace/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"

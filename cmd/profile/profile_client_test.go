@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 
-	"github.com/gildas/bitbucket-cli/cmd/profile"
+	"github.com/delabrcd/bitbucket-cli/cmd/profile"
 	"github.com/spf13/cobra"
 )
 

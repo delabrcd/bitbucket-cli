@@ -3,8 +3,8 @@ package step
 import (
 	"os"
 
-	"github.com/gildas/bitbucket-cli/cmd/common"
-	plcommon "github.com/gildas/bitbucket-cli/cmd/pipeline/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/common"
+	plcommon "github.com/delabrcd/bitbucket-cli/cmd/pipeline/common"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"

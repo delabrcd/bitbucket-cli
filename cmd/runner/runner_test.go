@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gildas/bitbucket-cli/cmd/runner"
+	"github.com/delabrcd/bitbucket-cli/cmd/runner"
 	"github.com/gildas/go-logger"
 	"github.com/stretchr/testify/suite"
 )
