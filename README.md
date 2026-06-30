@@ -38,7 +38,7 @@ sudo pacman -U bitbucket-cli-0.18.2-x86_64.pkg.tar.zst
 
 ### Windows
 
-Download the `.msi` installer (or the portable `.zip` archive) from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) and run it. The installer puts `bb` on your `PATH` automatically; for the zip, extract and add the folder to your `PATH` manually.
+Download the `…-setup.exe` installer (or the portable `.zip` archive) from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) and run it. The installer wizard installs `bb` and offers to add it to your `PATH`; for the zip, extract and add the folder to your `PATH` manually.
 
 ### Go
 
