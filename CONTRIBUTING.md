@@ -52,14 +52,14 @@ Ensure list and get commands remain compatible with various supported output for
 ## Style & Standards
 
 * **Formatting**:  
-Ensure your code follows the standard Go language conventions (you can run `make fmt` in the project root).
+Ensure your code follows the standard Go language conventions (you can run `task fmt` in the project root).
 * **Documentation**:  
 If you are adding a feature, please update any relevant documentation or help text within the CLI and the [README.md](README.md) file.
 * **Tests**:  
 Verify your changes by running existing tests and adding new ones where applicable.  
 If you add JSON paylods in the tests, make sure to add them in the `testdata` directory and reference them in your test code. You can find examples in the existing test files.  
 Please ensure that the payloads are anonymized enough and do not contain any sensitive information.  
-You can run all tests with `make test`.
+You can run all tests with `task test` (or `go test ./...`).
 
 ---
 
