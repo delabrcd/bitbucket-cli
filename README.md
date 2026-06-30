@@ -1,70 +1,64 @@
 # Bitbucket Command Line Interface
 
-[bb](https://github.com/gildas/bitbucket-cli) is the missing command line interface for Bitbucket. It brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
+[bb](https://github.com/delabrcd/bitbucket-cli) is the missing command line interface for Bitbucket. It brings the power of the Bitbucket platform to your command line. Creating and merging Pull Requests, cloning repositories, and more are now just a few keystrokes away.
+
+This is a hard fork of [gildas/bitbucket-cli](https://github.com/gildas/bitbucket-cli), maintained independently at `github.com/delabrcd/bitbucket-cli`.
 
 ## Installation
 
-### Linux
+All packages and binaries are published to [GitHub Releases](https://github.com/delabrcd/bitbucket-cli/releases).
 
-You can grab the latest Debian/Ubuntu package on the [Downloads](https://github.com/gildas/bitbucket-cli/releases) pages.
+### Debian / Ubuntu
 
-If you use [Homebrew](https://brew.sh), you can install `bb` with:
+Download the `.deb` package from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) and install it with `dpkg`:
 
 ```bash
-brew install gildas/tap/bitbucket-cli
+sudo dpkg -i bitbucket-cli_0.18.2_amd64.deb
 ```
 
-You can also install `bb` with snap:
+An `arm64` package (`bitbucket-cli_0.18.2_arm64.deb`) is also available on the same Releases page.
+
+### Fedora / RHEL
+
+Download the `.rpm` package from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) and install it with `rpm` or `dnf`:
 
 ```bash
-sudo snap install bitbucket-cli
-sudo snap alias bitbucket-cli bb
+sudo rpm -i bitbucket-cli-0.18.2.x86_64.rpm
+# or
+sudo dnf install ./bitbucket-cli-0.18.2.x86_64.rpm
 ```
 
-[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/bitbucket-cli)
+### Arch Linux
 
-### macOS
-
-You can get `bb` from [Homebrew](https://brew.sh) with:
+Download the `.pkg.tar.zst` package from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) and install it with `pacman`:
 
 ```bash
-brew install gildas/tap/bitbucket-cli
+sudo pacman -U bitbucket-cli-0.18.2-x86_64.pkg.tar.zst
 ```
 
 ### Windows
 
-You can get `bb` from [Chocolatey](https://chocolatey.org) with:
-
-```bash
-choco install bitbucket-cli
-```
-
-You can also install `bb` with [scoop](https://scoop.sh):
-
-```bash
-scoop bucket add gildas https://github.com/gildas/scoop-bucket
-scoop install bitbucket-cli
-```
+Download the `.msi` installer (or the portable `.zip` archive) from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) and run it. The installer puts `bb` on your `PATH` automatically; for the zip, extract and add the folder to your `PATH` manually.
 
 ### Go
 
 If you have Go installed, you can install `bb` with:
 
 ```bash
-go install github.com/gildas/bitbucket-cli@latest
+go install github.com/delabrcd/bitbucket-cli@latest
 mv $GOPATH/bin/bitbucket-cli $GOPATH/bin/bb
 ```
 
 This method also allows you to install `bb` from the development (`dev`) branch with:
 
 ```bash
-go install github.com/gildas/bitbucket-cli@dev
+go install github.com/delabrcd/bitbucket-cli@dev
 mv $GOPATH/bin/bitbucket-cli $GOPATH/bin/bb
 ```
 
 ### Binaries
 
-You can download the latest version of `bb` from the [downloads](https://github.com/gildas/bitbucket-cli/releases) page.
+You can download the latest version of `bb` from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases).
 
 Once you get the `bb` executable, you can install/copy it anywhere in your `$PATH`.
 
@@ -1505,7 +1499,7 @@ If you set the log level to DEBUG or more, `bb` will also log the source of the 
 
 **Notes**:
 
-- `bb` tries hard to not log sensitive information, but be careful when sharing the logs, and make sure to remove any sensitive information before sharing them. You can open an [issue](https://github.com/gildas/bitbucket-cli/issues) if you feel like `bb` is logging sensitive information it should not. (We will do our best to fix it as soon as possible)
+- `bb` tries hard to not log sensitive information, but be careful when sharing the logs, and make sure to remove any sensitive information before sharing them. You can open an [issue](https://github.com/delabrcd/bitbucket-cli/issues) if you feel like `bb` is logging sensitive information it should not. (We will do our best to fix it as soon as possible)
 - If you set the log level to `TRACE`, the logs will contain the full HTTP requests and responses, including headers and body. This can be useful for debugging, but it can also contain sensitive information, so be careful when sharing these logs.
 - When sending the logs to our team, please send the JSON version, not the pretty printed version, as it will be easier to analyze.
 
@@ -1513,8 +1507,8 @@ If you set the log level to DEBUG or more, `bb` will also log the source of the 
 
 We will add more commands in the future. If you have any suggestions, please open an issue.
 
-We are in the process of adding support for Bitbucket Server/Data Center. (Issue [#65](https://github.com/gildas/bitbucket-cli/issues/65), Branch [feature/Issue-#65-Datacenter](https://github.com/gildas/bitbucket-cli/tree/feature/Issue-%2365-Datacenter))
+We are in the process of adding support for Bitbucket Server/Data Center. (Issue [#65](https://github.com/delabrcd/bitbucket-cli/issues/65), Branch [feature/Issue-#65-Datacenter](https://github.com/delabrcd/bitbucket-cli/tree/feature/Issue-%2365-Datacenter))
 
 ## Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/gildas/bitbucket-cli.svg?variant=adaptive)](https://starchart.cc/gildas/bitbucket-cli)
+[![Stargazers over time](https://starchart.cc/delabrcd/bitbucket-cli.svg?variant=adaptive)](https://starchart.cc/delabrcd/bitbucket-cli)
