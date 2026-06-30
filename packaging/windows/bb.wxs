@@ -23,15 +23,11 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLDIR" Name="bb">
+          <!-- No <Environment> PATH entry: the wixl (msitools) build used in CI
+               does not support it. Installs to Program Files\bb; add it to PATH
+               manually, or use the portable zip. -->
           <Component Id="MainExecutable" Guid="3f1a264b-8017-44d0-a944-79412a26634e">
             <File Id="bbexe" Name="bb.exe" Source="bb.exe" KeyPath="yes"/>
-            <Environment Id="UpdatePath"
-                         Name="PATH"
-                         Value="[INSTALLDIR]"
-                         Permanent="no"
-                         Part="last"
-                         Action="set"
-                         System="yes"/>
           </Component>
         </Directory>
       </Directory>
