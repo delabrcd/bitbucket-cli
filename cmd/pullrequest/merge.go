@@ -1,6 +1,9 @@
 package pullrequest
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/gildas/bitbucket-cli/cmd/common"
 	"github.com/gildas/bitbucket-cli/cmd/profile"
 	"github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
@@ -24,16 +27,18 @@ var mergeOptions struct {
 	Message           string
 	MergeStrategy     *flags.EnumFlag
 	CloseSourceBranch bool
+	SkipChecks        bool
 }
 
 func init() {
 	Command.AddCommand(mergeCmd)
 
-	mergeOptions.MergeStrategy = flags.NewEnumFlag("+merge_commit", "squash", "fast_forward")
+	mergeOptions.MergeStrategy = flags.NewEnumFlag("merge_commit", "squash", "fast_forward")
 	mergeCmd.Flags().StringVar(&mergeOptions.Message, "message", "", "Message of the merge")
 	mergeCmd.Flags().BoolVar(&mergeOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch of the pullrequest")
 	mergeCmd.Flags().BoolVar(&mergeOptions.Async, "async", false, "Perform the merge asynchronously")
-	mergeCmd.Flags().Var(mergeOptions.MergeStrategy, "merge-strategy", "Merge strategy to use. Possible values are \"merge_commit\", \"squash\" or \"fast_forward\"")
+	mergeCmd.Flags().Var(mergeOptions.MergeStrategy, "merge-strategy", "Merge strategy to use (\"merge_commit\", \"squash\" or \"fast_forward\"). Defaults to the repository's configured default")
+	mergeCmd.Flags().BoolVar(&mergeOptions.SkipChecks, "skip-checks", false, "Skip the pre-merge build-status verification")
 	_ = mergeCmd.RegisterFlagCompletionFunc(mergeOptions.MergeStrategy.CompletionFunc("merge-strategy"))
 }
 
@@ -68,6 +73,13 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.Join(errors.Errorf("Cannot merge Pull Request"), err)
 	}
 
+	if mergeOptions.SkipChecks {
+		log.Warnf("Skipping pre-merge build-status verification (--skip-checks)")
+		fmt.Fprintln(os.Stderr, "Warning: skipping pre-merge build-status verification (--skip-checks)")
+	} else if err := verifyMergeChecks(log.ToContext(cmd.Context()), cmd, profile, repository, pullRequestID); err != nil {
+		return err
+	}
+
 	uripath := repository.GetPath("pullrequests", pullRequestID, "merge")
 
 	if mergeOptions.Async {
@@ -77,11 +89,15 @@ func mergeProcess(cmd *cobra.Command, args []string) (err error) {
 	payload := struct {
 		Message           string `json:"message,omitempty"`
 		CloseSourceBranch bool   `json:"close_source_branch"`
-		MergeStrategy     string `json:"merge_strategy"`
+		MergeStrategy     string `json:"merge_strategy,omitempty"`
 	}{
 		Message:           mergeOptions.Message,
 		CloseSourceBranch: mergeOptions.CloseSourceBranch,
-		MergeStrategy:     mergeOptions.MergeStrategy.String(),
+	}
+	// Only pin a merge strategy when the user picked one; otherwise omit it so
+	// Bitbucket applies the repository's configured default.
+	if cmd.Flags().Changed("merge-strategy") {
+		payload.MergeStrategy = mergeOptions.MergeStrategy.String()
 	}
 
 	log.Record("payload", payload).Infof("Merging pullrequest %s", pullRequestID)
