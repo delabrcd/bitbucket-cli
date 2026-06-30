@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/gildas/bitbucket-cli/cmd"
+	"github.com/delabrcd/bitbucket-cli/cmd"
 	"github.com/gildas/go-logger"
 	"github.com/joho/godotenv"
 )

@@ -11,6 +11,9 @@ Unreleased
 * feat: `bb pr merge` now verifies the head commit's build statuses and refuses to merge unless all pass (`--skip-checks` to override) — guards against admin tokens silently bypassing the required-builds gate
 * change: `bb pr merge --merge-strategy` now defaults to the repository's configured merge strategy instead of always `merge_commit`
 * change: `bb pr merge --close-source-branch` now defaults to the repository's configured setting (only sent when the flag is passed) instead of always forcing it off
+* refactor: rename Go module to `github.com/delabrcd/bitbucket-cli` (hard fork; `go install` path changes)
+* build: adopt GoReleaser for releases — deb/rpm/Arch packages, Windows zip + MSI (via wixl), checksums, and a GitHub Actions release workflow on tag
+* build: drop the Snap, Chocolatey, and Scoop channels; rebrand maintainer/homepage to the fork
 
 2026-06-26
 

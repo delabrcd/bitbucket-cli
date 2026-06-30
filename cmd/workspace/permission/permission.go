@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gildas/bitbucket-cli/cmd/common"
-	"github.com/gildas/bitbucket-cli/cmd/user"
-	wkcommon "github.com/gildas/bitbucket-cli/cmd/workspace/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/user"
+	wkcommon "github.com/delabrcd/bitbucket-cli/cmd/workspace/common"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/spf13/cobra"

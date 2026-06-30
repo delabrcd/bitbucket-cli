@@ -3,9 +3,9 @@ package artifact
 import (
 	"net/url"
 
-	"github.com/gildas/bitbucket-cli/cmd/common"
-	"github.com/gildas/bitbucket-cli/cmd/profile"
-	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/delabrcd/bitbucket-cli/cmd/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/profile"
+	"github.com/delabrcd/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"

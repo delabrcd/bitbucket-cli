@@ -1,0 +1,45 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Install MSI tooling (wixl)
+        run: sudo apt-get update && sudo apt-get install -y wixl
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # MSI is built from the dist/ binaries (GoReleaser OSS can't build MSI) and
+      # attached to the release GoReleaser just created.
+      - name: Build Windows MSI
+        run: bash packaging/windows/build-msi.sh "${GITHUB_REF_NAME#v}"
+
+      - name: Upload Windows MSI
+        run: gh release upload "${GITHUB_REF_NAME}" dist/*.msi --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

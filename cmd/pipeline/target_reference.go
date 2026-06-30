@@ -3,8 +3,8 @@ package pipeline
 import (
 	"encoding/json"
 
-	"github.com/gildas/bitbucket-cli/cmd/commit"
-	"github.com/gildas/bitbucket-cli/cmd/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/commit"
+	"github.com/delabrcd/bitbucket-cli/cmd/common"
 	"github.com/gildas/go-errors"
 )
 

@@ -3,10 +3,10 @@ package task
 import (
 	"fmt"
 
-	"github.com/gildas/bitbucket-cli/cmd/common"
-	"github.com/gildas/bitbucket-cli/cmd/profile"
-	prcommon "github.com/gildas/bitbucket-cli/cmd/pullrequest/common"
-	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/delabrcd/bitbucket-cli/cmd/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/profile"
+	prcommon "github.com/delabrcd/bitbucket-cli/cmd/pullrequest/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"

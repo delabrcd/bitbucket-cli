@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	plcommon "github.com/gildas/bitbucket-cli/cmd/pipeline/common"
-	"github.com/gildas/bitbucket-cli/cmd/pipeline/step"
+	plcommon "github.com/delabrcd/bitbucket-cli/cmd/pipeline/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/pipeline/step"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"

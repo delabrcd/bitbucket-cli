@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gildas/bitbucket-cli/cmd/common"
-	"github.com/gildas/bitbucket-cli/cmd/profile"
-	"github.com/gildas/bitbucket-cli/cmd/workspace"
+	"github.com/delabrcd/bitbucket-cli/cmd/common"
+	"github.com/delabrcd/bitbucket-cli/cmd/profile"
+	"github.com/delabrcd/bitbucket-cli/cmd/workspace"
 	errors "github.com/gildas/go-errors"
 	flags "github.com/gildas/go-flags"
 	logger "github.com/gildas/go-logger"

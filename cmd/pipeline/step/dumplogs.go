@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gildas/bitbucket-cli/cmd/profile"
-	"github.com/gildas/bitbucket-cli/cmd/repository"
+	"github.com/delabrcd/bitbucket-cli/cmd/profile"
+	"github.com/delabrcd/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-core"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"

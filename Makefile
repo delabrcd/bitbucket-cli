@@ -3,7 +3,7 @@
 # Goodies
 V = 0
 Q = $(if $(filter 1,$V),,@)
-E := 
+E :=
 S := $E $E
 M = $(shell printf "\033[34;1m▶\033[0m")
 P = echo -e
@@ -24,7 +24,6 @@ VERSION   != awk '/^var +VERSION +=/{gsub("\"", "", $$4) ; print $$4}' version.g
 ifeq ($(VERSION),)
 VERSION   != git describe --tags --always --dirty="-dev"
 endif
-REVISION  ?= 1
 PROJECT   != awk '/^const +APP += +/{gsub("\"", "", $$4); print $$4}' version.go
 ifeq (${PROJECT},)
 PROJECT   != basename "$(PWD)"
@@ -32,7 +31,7 @@ endif
 PACKAGE   = bitbucket-cli
 PACKAGE   ?= $(PROJECT)
 PLATFORMS ?= darwin/amd64 darwin/arm64 linux/amd64 linux/arm64 windows/amd64 windows/arm64
-export PACKAGE PROJECT VERSION BRANCH COMMIT BUILD REVISION
+export PACKAGE PROJECT VERSION BRANCH COMMIT BUILD
 
 # Files
 GOTESTS   := $(call rwildcard,,*_test.go)
@@ -51,20 +50,13 @@ GOOS    != $(GO) env GOOS
 LOGGER   =  bunyan -L -o short
 GOBIN    = $(BIN_DIR)
 GOLINT  ?= golangci-lint
-NFPM     = nfpm
-GOMPLATE = gomplate
 PANDOC  ?= pandoc
-TAR     ?= tar
-7ZIP    ?= 7z
-ZIP     ?= zip
-MOVE    ?= mv
-COPY    ?= cp -f
 AWK     ?= awk
 
 # Flags
 #MAKEFLAGS += --silent
 # GO
-#export GOPRIVATE   ?= 
+#export GOPRIVATE   ?=
 export CGO_ENABLED  = 0
 ifneq ($(what),)
 TEST_ARG := -run '$(what)'
@@ -108,7 +100,7 @@ else
 endif
 
 # Main Recipes
-.PHONY: all archive build changelog dep fmt gendoc help install lint logview publish run start stop test version vet watch
+.PHONY: all build changelog dep fmt gendoc help install lint logview run start stop test version vet watch
 
 help: Makefile; ## Display this help
 	@$P "$(PROJECT) version $(VERSION) build " $(BUILD) " in $(BRANCH) branch"
@@ -119,10 +111,6 @@ help: Makefile; ## Display this help
 all: test build; ## Test and Build the application
 
 gendoc: __gendoc_init__ $(BIN_DIR)/$(PROJECT).pdf; @ ## Generate the PDF documentation
-
-publish: __publish_init__ __publish_binaries__ __publish_snap__; @ ## Publish the binaries to the Repository
-
-archive: __archive_init__ __archive_all__ __archive_debian__ __archive_rpm__ __archive_chocolatey__ __archive_snap__ ; @ ## Archive the binaries
 
 build: __build_init__ __build_all__; @ ## Build the application for all platforms
 
@@ -221,94 +209,6 @@ $(BIN_DIR)/$(PROJECT).pdf: README.md ; $(info $(M) Generating PDF documentation 
 __start__: stop $(BIN_DIR)/$(GOOS)/$(PROJECT) | $(TMP_DIR) $(LOG_DIR); $(info $(M) Starting $(PROJECT) on $(GOOS))
 	$(info $(M)   Check the logs in $(LOG_DIR) with `make logview`)
 	$Q DEBUG=1 LOG_DESTINATION="$(LOG_DIR)/$(PROJECT).log" $(BIN_DIR)/$(GOOS)/$(PROJECT) & $P $$! > $(TMP_DIR)/$(PROJECT).pid
-
-# publish recipes
-.PHONY: __publish_init__ __publish_binaries__ __publish_snap__
-__publish_init__:;
-__publish_binaries__: __archive_all__ __archive_debian__ __archive_rpm__
-	$(info $(M) Uploading the binary packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*$(VERSION)*.tar.gz), gh release upload v$(VERSION) $(archive) ;)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*$(VERSION)*.zip),    gh release upload v$(VERSION) $(archive) ;)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*$(VERSION)*.7z),     gh release upload v$(VERSION) $(archive) ;)
-	$(info $(M) Uploading the Debian packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*$(VERSION)*.deb),    gh release upload v$(VERSION) $(archive) ;)
-	$(info $(M) Uploading the RPM packages...)
-	$Q $(foreach archive, $(wildcard $(BIN_DIR)/*$(VERSION)*.rpm),    gh release upload v$(VERSION) $(archive) ;)
-
-__publish_snap__: \
-	$(TMP_DIR)/__publish_snap__ \
-	;
-
-$(TMP_DIR)/__publish_snap__: $(TMP_DIR) __archive_snap__
-	$Q snapcraft upload --release=latest/edge $(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap
-	$Q $(TOUCH)
-
-# archive recipes
-.PHONY: __archive_init__ __archive_all__ __archive_chocolatey__ __archive_debian__ __archive_rpm__ __archive_snap__
-__archive_init__:;      $(info $(M) Archiving binaries for application $(PROJECT))
-__archive_all__: \
-	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz \
-	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_arm64.tar.gz \
-	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_amd64.tar.gz \
-	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_arm64.tar.gz \
-	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip \
-	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip \
-	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z \
-	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z \
-	;
-__archive_chocolatey__: \
-	packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z \
-	packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z \
-	;
-__archive_debian__: \
-	$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb \
-	$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb \
-	;
-__archive_rpm__: \
-	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm \
-	$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm \
-	;
-
-__archive_snap__: \
-	$(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap \
-	;
-
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_amd64.tar.gz: $(BIN_DIR)/darwin/amd64/$(PROJECT)
-	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_darwin_arm64.tar.gz: $(BIN_DIR)/darwin/arm64/$(PROJECT)
-	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_amd64.tar.gz: $(BIN_DIR)/linux/amd64/$(PROJECT)
-	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_linux_arm64.tar.gz: $(BIN_DIR)/linux/arm64/$(PROJECT)
-	$Q $(TAR) czf $@ -C $(<D) $(<F)
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.zip: $(BIN_DIR)/windows/amd64/$(PROJECT).exe
-	$Q $(ZIP) -9 -q --junk-paths $@ $<
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.zip: $(BIN_DIR)/windows/arm64/$(PROJECT).exe
-	$Q $(ZIP) -9 -q --junk-paths $@ $<
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/windows/amd64/$(PROJECT).exe
-	$Q $(7ZIP) a -r $@ $<
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/windows/arm64/$(PROJECT).exe
-	$Q $(7ZIP) a -r $@ $<
-
-packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-amd64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-amd64.7z
-	$Q $(COPY) $< $@
-packaging/chocolatey/tools/$(PACKAGE)-$(VERSION)-windows-arm64.7z: $(BIN_DIR)/$(PACKAGE)-$(VERSION)-windows-arm64.7z
-	$Q $(COPY) $< $@
-
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_amd64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux/amd64/$(PROJECT)
-	$Q PLATFORM=linux/amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)-$(REVISION)_arm64.deb: packaging/nfpm.yaml $(BIN_DIR)/linux/arm64/$(PROJECT)
-	$Q PLATFORM=linux/arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager deb
-
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).x86_64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux/amd64/$(PROJECT)
-	$Q PLATFORM=linux/amd64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
-$(BIN_DIR)/$(PACKAGE)-$(VERSION)-$(REVISION).aarch64.rpm: packaging/nfpm.yaml $(BIN_DIR)/linux/arm64/$(PROJECT)
-	$Q PLATFORM=linux/arm64 $(GOMPLATE) --file packaging/nfpm.yaml | $(NFPM) package --config - --target $(@D) --packager rpm
-
-$(BIN_DIR)/$(PACKAGE)_$(VERSION)_amd64.snap: packaging/snap/snapcraft.yaml
-	$Q $(RM) $@
-	$Q (cd packaging && snapcraft pack)
-	$Q $(MOVE) packaging/$(@F) $(@D)
 
 # build recipes for various platforms
 .PHONY: __build_all__ __build_init__ __fetch_modules__
