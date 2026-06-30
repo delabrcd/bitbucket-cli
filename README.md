@@ -36,6 +36,47 @@ Download the `.pkg.tar.zst` package from the [Releases page](https://github.com/
 sudo pacman -U bitbucket-cli-0.18.2-x86_64.pkg.tar.zst
 ```
 
+## Linux package repositories (auto-updates)
+
+Add one of the repositories below to keep `bb` up to date automatically. Once configured, normal `apt upgrade` / `dnf upgrade` / `pacman -Syu` will pull new releases without any manual download.
+
+### Debian / Ubuntu (apt)
+
+```bash
+curl -fsSL https://delabrcd.github.io/bitbucket-cli/bitbucket-cli.gpg | sudo tee /usr/share/keyrings/bitbucket-cli.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/bitbucket-cli.gpg] https://delabrcd.github.io/bitbucket-cli/deb ./" | sudo tee /etc/apt/sources.list.d/bitbucket-cli.list
+sudo apt update && sudo apt install bitbucket-cli
+```
+
+### Fedora / RHEL (dnf)
+
+```bash
+sudo curl -fsSL -o /etc/yum.repos.d/bitbucket-cli.repo https://delabrcd.github.io/bitbucket-cli/rpm/bitbucket-cli.repo
+sudo dnf install bitbucket-cli
+```
+
+### Arch Linux (pacman)
+
+Import and locally sign the key, then add the repository to `/etc/pacman.conf`:
+
+```bash
+curl -fsSL https://delabrcd.github.io/bitbucket-cli/bitbucket-cli.gpg | sudo pacman-key --add -
+sudo pacman-key --lsign-key 4AEA6A46957261ECE8F77071AE688AB6D9A1A1CA
+```
+
+Add to `/etc/pacman.conf`:
+
+```
+[bitbucket-cli]
+Server = https://delabrcd.github.io/bitbucket-cli/arch/$arch
+```
+
+Then install:
+
+```bash
+sudo pacman -Sy bitbucket-cli
+```
+
 ### Windows
 
 Download the `…-setup.exe` installer (or the portable `.zip` archive) from the [Releases page](https://github.com/delabrcd/bitbucket-cli/releases) and run it. The installer wizard installs `bb` and offers to add it to your `PATH`; for the zip, extract and add the folder to your `PATH` manually.
