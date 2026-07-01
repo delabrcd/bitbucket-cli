@@ -28,7 +28,7 @@ import (
 var Command = &cobra.Command{
 	Use:     "upgrade",
 	Aliases: []string{"update", "self-update"},
-	Short:   "upgrade bb to the latest release",
+	Short:   "Upgrade bb to the latest release",
 	Long: `Upgrade bb to the latest release from GitHub (delabrcd/bitbucket-cli).
 
 On Linux, if the running binary lives under a system prefix (/usr/, /bin/, /opt/)

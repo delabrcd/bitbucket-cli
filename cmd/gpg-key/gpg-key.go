@@ -31,7 +31,7 @@ type GPGKey struct {
 var Command = &cobra.Command{
 	Use:     "gpg-key",
 	Aliases: []string{"key"}, // backward compatibility
-	Short:   "Manage GPG keys",
+	Short:   "Add, list, and remove GPG keys",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Key requires a subcommand:")
 		for _, command := range cmd.Commands() {

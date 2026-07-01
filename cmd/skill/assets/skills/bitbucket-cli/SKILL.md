@@ -1,20 +1,20 @@
 ---
 name: bitbucket-cli
-description: Use whenever doing Bitbucket Cloud work via the `bb` CLI (gildas/bitbucket-cli) — pull requests, comments/reviews, repos, branches, commits, pipelines, runners, merges. Covers the command grammar, the `bb api` raw-REST escape hatch, the PR-review (pending/inline) workflow, the merge-gate verify-first rule, and @-mention/default-reviewer gotchas.
+description: Use whenever doing Bitbucket Cloud work via the `bb` CLI (delabrcd/bitbucket-cli) — pull requests, comments/reviews, repos, branches, commits, pipelines, runners, merges. Covers the command grammar, the `bb api` raw-REST escape hatch, the PR-review (pending/inline) workflow, the merge-gate verify-first rule, and @-mention/default-reviewer gotchas.
 ---
 
 # Bitbucket `bb` CLI reference
 
-`bb` (gildas/bitbucket-cli) is the daily driver for Bitbucket Cloud work: clean `bb <resource> <action>` grammar, `-o json` for scripting, and a `bb api` raw-REST escape hatch for anything the typed subcommands don't cover.
+`bb` (delabrcd/bitbucket-cli, a hard fork of gildas/bitbucket-cli) is the daily driver for Bitbucket Cloud work: clean `bb <resource> <action>` grammar, `-o json` for scripting, and a `bb api` raw-REST escape hatch for anything the typed subcommands don't cover.
 
-Upstream: https://github.com/gildas/bitbucket-cli · REST docs: https://developer.atlassian.com/cloud/bitbucket/rest/
+Repo: https://github.com/delabrcd/bitbucket-cli · Usage docs: https://github.com/delabrcd/bitbucket-cli/wiki · REST docs: https://developer.atlassian.com/cloud/bitbucket/rest/
 
 ## Conventions
 
 - **Grammar:** `bb <resource> <action> [args] [flags]`, e.g. `bb pullrequest list`, `bb pipeline step logs`. `pr` is an alias for `pullrequest`.
-- **Auth/workspace:** profile and workspace come from your `bb` config (set via `bb config` or `~/.config/bb/config.yaml`), the cwd's git remote, or explicit `--profile` / `--workspace` flags.
+- **Auth/workspace:** profile and workspace come from your `bb` config (`~/.config/bitbucket/config-cli.yml`, managed with `bb profile create` / `bb profile authorize` / `bb profile use`), the cwd's git remote, or explicit `--profile` / `--workspace` flags. There is no `bb config` command — profiles are the config surface.
 - **Repository:** auto-detected from the cwd's git remote; otherwise pass `--repository <slug>` (case-sensitive — use the URL slug, not the display name).
-- **Output:** pass `-o json` whenever parsing programmatically (`-o yaml`/`-o table` also available). Pipe to `jq` for filtering.
+- **Output:** pass `-o json` whenever parsing programmatically (`-o yaml`/`-o table`/`-o csv`/`-o tsv` also available). To filter, use the **built-in `--jq` / `-q <expr>`** flag — an embedded jq engine (no external `jq` binary), works on any command's output and on `bb api`, implies JSON, and prints scalar-string results raw (like `jq -r`). External piping still works too.
 - **Mutations** (`create`, `update`, `merge`, `decline`, `approve`, `delete`, comment posts, pipeline `trigger`/`stop`) are remote-mutating — confirm intent before invoking. Use `--dry-run` to preview without changing anything.
 - `bb repo list` defaults to `--role owner` and returns **empty** for most workspace members — pass `--role member` to see all workspace repos (documented Bitbucket API default, not a bug).
 
@@ -23,7 +23,7 @@ Upstream: https://github.com/gildas/bitbucket-cli · REST docs: https://develope
 For anything the typed subcommands don't expose, hit the REST API directly:
 
 ```
-bb api <endpoint> [-X METHOD] [-f key=val] [-F key=val] [--input body.json] [--paginate] [-i]
+bb api <endpoint> [-X METHOD] [-f key=val] [-F key=val] [--input body.json] [--paginate] [-i] [-q <jq>]
 ```
 
 - The endpoint is joined to the API root with the **`/2.0` prefix added automatically** — do NOT include `/2.0`. A full `https://…` URL is used verbatim (handy for following `next` links).
@@ -32,6 +32,7 @@ bb api <endpoint> [-X METHOD] [-f key=val] [-F key=val] [--input body.json] [--p
 - `--input body.json` (or `-` for stdin) sends a raw JSON body; `--content-type` overrides the default `application/json`.
 - `--paginate` follows `next` links and merges every page's `values` into one result.
 - `-i` includes the response status line + headers.
+- `-q <expr>` / `--jq <expr>` filters the JSON response through the embedded jq engine before printing (no external `jq` needed); with `--paginate` it runs against the merged `{"values": […]}` document.
 
 Common endpoints worth knowing (all relative, no `/2.0`):
 
@@ -46,7 +47,7 @@ Common endpoints worth knowing (all relative, no `/2.0`):
 - `bb repo list --role member -o json` — workspace repos (`--role` values: `all|owner|admin|contributor|member`; default `owner` returns empty for most users)
 - `bb repo get <slug>` — repo details (slug is positional)
 - `bb branch list` — **only `list` exists** under `bb branch`. To get/delete a branch use `bb api`: `bb api repositories/{workspace}/{repo}/refs/branches/<name>` (GET) or `bb api -X DELETE repositories/{workspace}/{repo}/refs/branches/<name>`.
-- `bb commit list` · `bb commit get <sha>` · `bb commit diff <sha>`
+- `bb commit list` · `bb commit get <sha>` · `bb commit diff <sha>` · `bb commit patch <sha>` · `bb commit ancestor <sha> <sha>` (all read-only)
 
 **Pull requests:**
 - `bb pr list --repository <slug> -o json` (server-side filter with `--state`; default `open`, also `merged`/`declined`/`superseded`)
@@ -73,19 +74,17 @@ Common endpoints worth knowing (all relative, no `/2.0`):
 - `bb skill install` — install this skill into a Claude skills directory. Auto-detects project `.claude/skills` and personal `~/.claude/skills`; `--dir` to specify a target, `--force` to overwrite.
 - `bb completion install` — install shell completions (bash/zsh/fish). Auto-detects shell and install directory; `--shell` and `--dir` to override.
 
-## Merging a PR — the API does NOT enforce merge checks for admins
+## Merging a PR — `bb pr merge` gates on build statuses first
 
-`bb pr merge <id>` (→ `POST .../merge`) evaluates branch merge checks (e.g. `require_passing_builds_to_merge` = "≥1 successful, no failed, no in-progress builds") against the **token owner's permissions**. For a non-admin a failing check refuses the merge. But if the token owner has **repo admin**, their override is applied **automatically and silently** — there is no "Merge anyway" confirmation like the web UI. An admin token will push a PR with a failed or in-progress pipeline straight onto the target branch, no questions asked.
+`bb pr merge <id>` runs a **client-side pre-merge check before** calling `POST .../merge`: it resolves the PR head commit, fetches its build statuses (`…/commit/<sha>/statuses`), and **refuses to merge unless every status is `SUCCESSFUL`** — a `FAILED`/`STOPPED`/`INPROGRESS` status blocks the merge and the offenders are listed. No statuses on the commit = nothing to verify, so the merge proceeds.
 
-**Before any `bb pr merge`, verify the build state yourself — the API won't:**
+Why this guard exists: Bitbucket's own merge API evaluates `require_passing_builds_to_merge` against the **token owner's permissions** and silently honors a **repo admin's** override with no "Merge anyway" prompt — so an admin token would otherwise push a PR with a red or in-progress build straight onto the target branch. `bb` restores the gate regardless of token privilege.
 
-1. Get the PR head commit: `bb pr get <id> -o json | jq -r '.source.commit.hash'`
-2. Check every status on it: `bb api repositories/{workspace}/{repo}/commit/<sha>/statuses | jq '.values[] | {key, state}'`
-3. Merge only if **all** are `SUCCESSFUL` (no `FAILED`, no `INPROGRESS`). Multiple producers can report here (the pipeline build AND external checks such as code-quality tools) — all must be green.
+- **`--skip-checks`** bypasses the gate (warns on stderr). Use only when you've verified out-of-band.
+- The gate covers **build statuses only** — it does NOT check the other branch-restriction kinds (`require_no_changes_requested`, `require_tasks_to_be_completed`). Inspect those yourself via `…/branch-restrictions` or the PR if they matter.
+- Multiple producers can report statuses on one commit (the pipeline build AND external checks such as code-quality tools) — all must be green.
 
-Merge-check config lives at `…/branch-restrictions` (kinds: `require_passing_builds_to_merge`, `require_no_changes_requested`, `require_tasks_to_be_completed`). Bitbucket Cloud has no per-check "disallow admin override" toggle, so this verify-first habit is the only guard.
-
-Strategy/flags: `--merge-strategy merge_commit|squash|fast_forward`, `--message`, `--close-source-branch`.
+Strategy/flags: `--merge-strategy merge_commit|squash|fast_forward` (defaults to the repo's configured strategy), `--message`, `--close-source-branch` (defaults to the repo's configured setting), `--async`.
 
 ## PR review workflow — batched, inline-first (preferred)
 

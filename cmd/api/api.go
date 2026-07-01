@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/delabrcd/bitbucket-cli/cmd/common"
 	"github.com/delabrcd/bitbucket-cli/cmd/profile"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-logger"
@@ -59,6 +60,7 @@ var apiOptions struct {
 	ContentType string
 	Paginate    bool
 	Include     bool
+	JQ          string
 }
 
 func init() {
@@ -82,6 +84,10 @@ func apiProcess(cmd *cobra.Command, args []string) (err error) {
 	currentProfile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
 		return err
+	}
+
+	if jq := cmd.Flag("jq"); jq != nil && jq.Changed {
+		apiOptions.JQ = jq.Value.String()
 	}
 
 	body, payloadType, err := buildBody()
@@ -240,9 +246,15 @@ func output(result *request.Content, err error) error {
 			fmt.Println()
 		}
 		if len(result.Data) > 0 {
-			os.Stdout.Write(result.Data)
-			if !bytes.HasSuffix(result.Data, []byte("\n")) {
-				fmt.Println()
+			if len(apiOptions.JQ) > 0 {
+				if jqErr := common.ApplyJQ(result.Data, apiOptions.JQ, os.Stdout); jqErr != nil {
+					return jqErr
+				}
+			} else {
+				os.Stdout.Write(result.Data)
+				if !bytes.HasSuffix(result.Data, []byte("\n")) {
+					fmt.Println()
+				}
 			}
 		}
 	}
@@ -279,6 +291,9 @@ func paginate(cmd *cobra.Command, currentProfile *profile.Profile, method, endpo
 	merged, err := json.MarshalIndent(map[string]interface{}{"values": values}, "", "  ")
 	if err != nil {
 		return errors.JSONMarshalError.Wrap(err)
+	}
+	if len(apiOptions.JQ) > 0 {
+		return common.ApplyJQ(merged, apiOptions.JQ, os.Stdout)
 	}
 	fmt.Println(string(merged))
 	return nil

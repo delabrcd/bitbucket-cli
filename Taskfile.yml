@@ -27,6 +27,20 @@ tasks:
     cmds:
       - go build -ldflags "-s -w -X main.VERSION={{.VERSION}}" -o "{{.GOPATH}}/bin/{{.BINARY}}" .
 
+  local:
+    desc: Build the dev binary and expose it as `bb-local` on your PATH (~/.local/bin); the released `bb` stays untouched
+    cmds:
+      - task: build
+      - mkdir -p "$HOME/.local/bin"
+      - ln -sf "{{.TASKFILE_DIR}}/{{.BINARY}}" "$HOME/.local/bin/bb-local"
+      - 'echo "bb-local -> {{.TASKFILE_DIR}}/{{.BINARY}} ({{.VERSION}})  |  run ''bb-local'' for this dev build, ''bb'' for the release"'
+
+  local:remove:
+    desc: Remove the `bb-local` symlink from ~/.local/bin
+    cmds:
+      - rm -f "$HOME/.local/bin/bb-local"
+      - 'echo "removed $HOME/.local/bin/bb-local"'
+
   test:
     desc: Run the test suite
     cmds:

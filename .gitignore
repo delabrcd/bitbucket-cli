@@ -5,6 +5,7 @@
 
 # Go artifacts
 bin/
+/bb
 
 # Node artifact files
 node_modules/

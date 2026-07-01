@@ -26,6 +26,7 @@ A few things that make a PR easy to accept:
 - **Output formats.** Keep `list`/`get` output compatible with the supported formats (JSON, YAML, table, etc.).
 - **Format & test.** Run `task fmt` and `task test` (or `go test ./...`) before opening the PR. Add tests where applicable; put JSON payloads in `testdata/` and anonymize them.
 - **Docs.** Update the CLI help text for any behavior change. User-facing usage docs live in the [wiki](https://github.com/delabrcd/bitbucket-cli/wiki) rather than the README.
+- **Agent skill.** If your change adds, removes, or renames a command or flag, or changes a default or user-visible behavior documented there, update [`cmd/skill/assets/skills/bitbucket-cli/SKILL.md`](cmd/skill/assets/skills/bitbucket-cli/SKILL.md) to match.
 
 ## License
 

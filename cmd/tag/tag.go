@@ -32,7 +32,7 @@ type TagReference struct {
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "tag",
-	Short: "Manage tags",
+	Short: "Create, list, and delete tags",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Tag requires a subcommand:")
 		for _, command := range cmd.Commands() {

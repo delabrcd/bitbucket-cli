@@ -24,7 +24,7 @@ type Artifact struct {
 
 var Command = &cobra.Command{
 	Use:   "artifact",
-	Short: "Manage artifacts",
+	Short: "Upload, download, and list artifacts",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Artifact requires a subcommand:")
 		for _, command := range cmd.Commands() {

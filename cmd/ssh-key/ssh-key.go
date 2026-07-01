@@ -32,7 +32,7 @@ type SSHKey struct {
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "ssh-key",
-	Short: "Manage SSH keys",
+	Short: "Add, list, and remove SSH keys",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Key requires a subcommand:")
 		for _, command := range cmd.Commands() {

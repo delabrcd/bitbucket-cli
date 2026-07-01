@@ -54,7 +54,7 @@ const (
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "profile",
-	Short: "Manage profiles",
+	Short: "Configure and switch CLI profiles",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Profile requires a subcommand:")
 		for _, command := range cmd.Commands() {
@@ -360,6 +360,13 @@ func (profile Profile) String() string {
 // Print prints the given payload to the console
 func (profile Profile) Print(context context.Context, cmd *cobra.Command, payload any) error {
 	log := logger.Must(logger.FromContext(context)).Child("profile", "print", "format", profile.OutputFormat)
+
+	// A --jq expression filters the payload as JSON, regardless of the configured
+	// output format.
+	if jq := cmd.Flag("jq"); jq != nil && jq.Changed && len(jq.Value.String()) > 0 {
+		return profile.PrintJQ(context, cmd, payload, jq.Value.String())
+	}
+
 	outputFormat := profile.OutputFormat
 
 	if cmd.Flag("output").Changed {
@@ -380,6 +387,19 @@ func (profile Profile) Print(context context.Context, cmd *cobra.Command, payloa
 	default:
 		return profile.PrintTable(context, cmd, payload)
 	}
+}
+
+// PrintJQ serializes the payload as JSON and filters it through the given jq
+// expression before printing.
+func (profile Profile) PrintJQ(context context.Context, cmd *cobra.Command, payload any, expr string) error {
+	log := logger.Must(logger.FromContext(context))
+
+	log.Debugf("Filtering payload with jq: %s", expr)
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return errors.JSONMarshalError.Wrap(err)
+	}
+	return common.ApplyJQ(data, expr, os.Stdout)
 }
 
 // PrintJSON prints the given payload to the console as JSON

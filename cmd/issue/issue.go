@@ -44,7 +44,7 @@ type Issue struct {
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "issue",
-	Short: "Manage issues",
+	Short: "Create, edit, and track issues",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Issue requires a subcommand:")
 		for _, command := range cmd.Commands() {
