@@ -2,6 +2,10 @@
 Unreleased
 =============
 
+0.19.4
+=============
+2026-07-01
+
 * feat: `bb skill install` now records every install location in a registry (`<config-dir>/bitbucket/skills.yaml`) so bb can keep installed skills in sync with the version bundled in the running binary
 * feat: add `bb skill list`/`update`/`forget` and `bb skill mode [notify|auto|off]` — track installed skills, refresh out-of-date ones (SHA-256 drift detection, honors `--dry-run`), and choose the startup behavior when a tracked skill is stale (default `notify`, throttled once/24h; `BB_NO_SKILL_CHECK=1` opts out per run)
 * feat: deb/rpm/Arch packages now ship bash/zsh/fish completions into the standard system completion directories, so completions install and auto-update with the package (`bb completion install` remains for tarball/macOS/manual installs)
