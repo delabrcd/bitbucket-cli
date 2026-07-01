@@ -40,7 +40,7 @@ type ProjectReference struct {
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "project",
-	Short: "Manage projects",
+	Short: "Create, update, and configure projects",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Project requires a subcommand:")
 		for _, command := range cmd.Commands() {

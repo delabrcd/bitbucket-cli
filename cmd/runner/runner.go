@@ -59,7 +59,7 @@ type OAuthClient struct {
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "runner",
-	Short: "Manage Pipelines self-hosted runners (repository or workspace scope)",
+	Short: "Register self-hosted Pipelines runners (repo or workspace scope)",
 	Long: `Manage Bitbucket Pipelines self-hosted runners.
 
 By default commands operate on the runners of the current repository. Pass

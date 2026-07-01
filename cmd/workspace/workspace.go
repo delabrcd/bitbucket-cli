@@ -28,7 +28,7 @@ type Workspace struct {
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "workspace",
-	Short: "Manage workspaces",
+	Short: "View workspaces and permissions",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Workspace requires a subcommand:")
 		for _, command := range cmd.Commands() {

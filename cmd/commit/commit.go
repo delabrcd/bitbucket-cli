@@ -36,7 +36,7 @@ type RenderedMessage struct {
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "commit",
-	Short: "Manage commits",
+	Short: "Inspect commits, diffs, and patches",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Commit requires a subcommand:")
 		for _, command := range cmd.Commands() {

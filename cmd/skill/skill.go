@@ -20,7 +20,7 @@ var assets embed.FS
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "skill",
-	Short: "Manage the bb agent skill",
+	Short: "Install the bb agent skill",
 	Long: `Manage the bb agent skill.
 
 bb bundles a "skill" document that teaches an AI coding agent (e.g. Claude Code)

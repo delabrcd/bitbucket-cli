@@ -41,6 +41,7 @@ type RootOptions struct {
 	Repository     string          `mapstructure:"-"`
 	Workspace      *flags.EnumFlag `mapstructure:"-"`
 	OutputFormat   flags.EnumFlag  `mapstructure:"-"`
+	JQ             string          `mapstructure:"-"`
 	DryRun         bool            `mapstructure:"-"`
 	Verbose        bool            `mapstructure:"-"`
 	Debug          bool            `mapstructure:"-"`
@@ -57,12 +58,6 @@ var RootCmd = &cobra.Command{
 	Short: "BitBucket Command Line Interface",
 	Long: `BitBucket Command Line Interface is a tool to manage your BitBucket.
 You can manage your pull requests, issues, profiles, etc.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("bb requires a command:")
-		for _, command := range cmd.Commands() {
-			fmt.Println(command.Name())
-		}
-	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -89,6 +84,7 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.Debug, "debug", false, "logs are written at DEBUG level, overrides DEBUG environment variable")
 	RootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
 	RootCmd.PersistentFlags().VarP(&CmdOptions.OutputFormat, "output", "o", "Output format (json, yaml, table). Overrides the default output format of the profile")
+	RootCmd.PersistentFlags().StringVarP(&CmdOptions.JQ, "jq", "q", "", "Filter JSON output with a jq expression (implies JSON; scalar strings print raw)")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.StopOnError, "stop-on-error", false, "Stop on error")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.WarnOnError, "warn-on-error", false, "Warn on error")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")
@@ -129,6 +125,9 @@ func init() {
 			break
 		}
 	}
+
+	registerCommandGroups(RootCmd)
+	setHelpAndUsage(RootCmd)
 
 	RootCmd.SilenceUsage = true // Do not show usage when an error occurs
 	cobra.OnInitialize(func() {

@@ -62,7 +62,7 @@ type branch struct {
 var Command = &cobra.Command{
 	Use:     "repo",
 	Aliases: []string{"repository"},
-	Short:   "Manage repositories",
+	Short:   "Create, clone, and fork repositories",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Workspace requires a subcommand:")
 		for _, command := range cmd.Commands() {

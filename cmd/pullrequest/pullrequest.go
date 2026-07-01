@@ -52,7 +52,7 @@ type PullRequest struct {
 var Command = &cobra.Command{
 	Use:     "pullrequest",
 	Aliases: []string{"pr", "pull-request"},
-	Short:   "Manage pull requests",
+	Short:   "Create, review, and merge pull requests",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Pullrequest requires a subcommand:")
 		for _, command := range cmd.Commands() {

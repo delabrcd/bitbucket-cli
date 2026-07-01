@@ -35,7 +35,7 @@ var UserCache = common.NewCache[User]()
 var Command = &cobra.Command{
 	Use:     "user",
 	Aliases: []string{"account"},
-	Short:   "Manage users",
+	Short:   "View user account details",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Issue requires a subcommand:")
 		for _, command := range cmd.Commands() {

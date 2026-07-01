@@ -29,7 +29,7 @@ type BranchReference struct {
 // Command represents this folder's command
 var Command = &cobra.Command{
 	Use:   "branch",
-	Short: "Manage branches",
+	Short: "List repository branches",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Branch requires a subcommand:")
 		for _, command := range cmd.Commands() {

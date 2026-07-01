@@ -49,7 +49,7 @@ type ConfigurationSource struct {
 var Command = &cobra.Command{
 	Use:     "pipeline",
 	Aliases: []string{"pipelines", "pipe", "pp"},
-	Short:   "Manage pipelines",
+	Short:   "Trigger, watch, and inspect pipelines",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Pipeline requires a subcommand:")
 		for _, command := range cmd.Commands() {
