@@ -74,6 +74,18 @@ func installProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Fprintf(cmd.OutOrStdout(), "Installed skill %q to %s\n", skillName, dest)
+
+	if state, err := LoadState(); err != nil {
+		log.Warnf("failed to load skill registry: %s", err)
+		fmt.Fprintf(os.Stderr, "Note: failed to update the skill registry: %s\n", err)
+	} else {
+		state.Record(dest, cmd.Root().Version)
+		if err := state.Save(); err != nil {
+			log.Warnf("failed to save skill registry: %s", err)
+			fmt.Fprintf(os.Stderr, "Note: failed to update the skill registry: %s\n", err)
+		}
+	}
+
 	return nil
 }
 

@@ -9,6 +9,7 @@ project_name: bitbucket-cli
 before:
   hooks:
     - go mod tidy
+    - sh -c 'set -e; tmp=$(mktemp -d); go build -o "$tmp/bb" .; mkdir -p completions; "$tmp/bb" completion bash > completions/bb; "$tmp/bb" completion zsh > completions/_bb; "$tmp/bb" completion fish > completions/bb.fish; rm -rf "$tmp"'
 
 builds:
   - id: bb
@@ -61,6 +62,22 @@ nfpms:
       - archlinux
     bindir: /usr/bin
     section: utils
+    # Shell completions generated in the before-hook above (completions/bb,
+    # completions/_bb, completions/bb.fish); ship them so the package manager
+    # installs them into the standard system completion directories.
+    contents:
+      - src: ./completions/bb
+        dst: /usr/share/bash-completion/completions/bb
+        file_info:
+          mode: 0644
+      - src: ./completions/_bb
+        dst: /usr/share/zsh/site-functions/_bb
+        file_info:
+          mode: 0644
+      - src: ./completions/bb.fish
+        dst: /usr/share/fish/vendor_completions.d/bb.fish
+        file_info:
+          mode: 0644
 
 # Windows ships as a portable zip here (see archives). The MSI installer is a
 # GoReleaser Pro feature, so it is built from the dist/ binaries by wixl
