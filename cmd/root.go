@@ -135,5 +135,8 @@ func init() {
 			fmt.Fprintf(os.Stderr, "Failed to initialize: %s\n", err)
 			os.Exit(1)
 		}
+		// Honor the configured skill update-mode (notify/auto/off). Best-effort:
+		// never writes to stdout and never fails the command.
+		skill.MaybeCheck(RootCmd.Context(), RootCmd.Version)
 	})
 }

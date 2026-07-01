@@ -71,8 +71,11 @@ Common endpoints worth knowing (all relative, no `/2.0`):
 - `create`: `--label` is repeatable; include one OS label (`linux`/`linux.arm64`/`linux.shell`/`windows`/`macos`), `self.hosted` is auto-added. The response's `oauth_client.secret` is printed **only once** — capture it immediately with `-o json` (never retrievable again). The agent version appears under `state.version.current`; `state.cordoned` flags a paused runner.
 
 **Skill and shell completions:**
-- `bb skill install` — install this skill into a Claude skills directory. Auto-detects project `.claude/skills` and personal `~/.claude/skills`; `--dir` to specify a target, `--force` to overwrite.
-- `bb completion install` — install shell completions (bash/zsh/fish). Auto-detects shell and install directory; `--shell` and `--dir` to override.
+- `bb skill install` — install this skill into a Claude skills directory. Auto-detects project `.claude/skills` and personal `~/.claude/skills`; `--dir` to specify a target, `--force` to overwrite. Every install is recorded in a local registry (`<config-dir>/bitbucket/skills.yaml`).
+- `bb skill list` (`ls`/`status`) — show tracked skill installs and whether each still matches the skill bundled with the running `bb` (`up-to-date` / `OUT OF DATE` / `MISSING`).
+- `bb skill update` (`sync`) — rewrite every out-of-date tracked install with the bundled skill (respects `--dry-run`); `bb skill forget <path>` stops tracking one without deleting it.
+- `bb skill mode [notify|auto|off]` — control the startup drift check: **notify** (default) prints a once-per-24h stderr notice when a tracked skill is stale, **auto** silently refreshes stale skills on the next `bb` run, **off** disables it. `BB_NO_SKILL_CHECK=1` also disables it for one run. The check never touches stdout and never fails a command.
+- `bb completion install` — install shell completions (bash/zsh/fish) for a user-local (tarball/macOS/manual) install. Auto-detects shell and install directory; `--shell` and `--dir` to override. On distro packages (deb/rpm/Arch) the completions are shipped by the package itself into the system completion dirs, so this is only needed for non-package installs.
 
 ## Merging a PR — `bb pr merge` gates on build statuses first
 
