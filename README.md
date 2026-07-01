@@ -63,7 +63,7 @@ We are in the process of adding support for Bitbucket Server/Data Center ([issue
 
 ## Contributing
 
-Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md). This project is licensed under the terms of the [LICENSE](LICENSE).
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). This project is licensed under the terms of the [LICENSE](LICENSE).
 
 ## Stargazers over time
 

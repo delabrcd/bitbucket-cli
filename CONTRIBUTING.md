@@ -1,82 +1,32 @@
-# Contributing to Bitbucket-cli
+# Contributing
 
-First off, thank you for taking the time to contribute to the [Bitbucket cli](https://github.com/gildas/bitbucket-cli)!
+Thanks for your interest in this project!
 
-We welcome contributions from the community to help make this the best command-line interface for the Bitbucket platform.
+`bb` is a **personal hard fork** of [gildas/bitbucket-cli](https://github.com/gildas/bitbucket-cli), maintained at [delabrcd/bitbucket-cli](https://github.com/delabrcd/bitbucket-cli). It exists to add functionality that makes Bitbucket workflows driven by AI agents more useful and productive, and is **not** merged back upstream.
 
-It’s folks like you that make `bitbucket-cli` a better tool for everyone.
-
----
-
-## Getting Started
-
-1. **Fork the repository**: To get started, please **fork the repository** to your own GitHub account.
-2. **Clone your fork**: Clone the forked repository to your local machine.
-3. **Create a feature branch**: Create a branch for your changes, ensuring it is based off the latest code.
+- If you're looking for the original, actively community-maintained project, head to [gildas/bitbucket-cli](https://github.com/gildas/bitbucket-cli).
+- Issues and pull requests against **this** fork are welcome, but this is a spare-time project — I may be slow to respond, and I may decline changes that don't fit how I use the tool. No hard feelings either way.
 
 ---
 
-## Pull Request Guidelines
+## Reporting issues
 
-To maintain code quality and a streamlined workflow, we enforce the following rules for all Pull Requests:
+Found a bug or have a suggestion? Please [open an issue](https://github.com/delabrcd/bitbucket-cli/issues) with a clear description. Check the existing issues first to avoid duplicates.
 
-### 1. Reporting Issues
+## Pull requests
 
-If you find a bug, please check if the issue you are addressing has already been reported. If not, please create a new [issue](https://github.com/gildas/bitbucket-cli/issues) with a clear description of the problem and link that issue in your Pull Request.
+1. **Fork** this repository and **clone** your fork.
+2. Create a **feature branch** off the latest `main`.
+3. Open your PR against **`main`** (this fork's default branch).
 
-### 2. Target the `dev` Branch
+A few things that make a PR easy to accept:
 
-All Pull Requests **must** be targeted at the `dev` branch.
-> [!IMPORTANT]
-> PRs opened against the `master` branch will be closed or you will be asked to retarget them to `dev`.
-
-### 3. Signed Commits
-
-Integrity is key. **All commits in Pull Requests must be signed** (GPG, SSH, or X.509).
-
-* PRs containing unsigned commits will be closed or asked to be retargeted once the commits are signed.
-* If you aren't sure how to do this, check out [GitHub's guide on signing commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification).
-
-### 4. Command Structure
-
-* **Resources and commands:**  
-`bb` is built as a modern CLI using subcommands. Ensure new features follow this pattern (e.g., `bb <resource> <subresource...> <command>`).  
-Resources should be nouns (e.g., `repository`, `pullrequest`), and commands should be verbs (e.g., `list`, `create`, `delete`). Resources should support the standard CRUD operations (Create -> `create`, Read -> `list` and `get`, Update -> `update`, Delete -> `delete`) where applicable. Additional commands are welcome.
-* **Dry Run Support:**  
-All commands that modify data on Bitbucket should support the --dry-run flag to allow users to preview changes.
-* **Output Formats:**  
-Ensure list and get commands remain compatible with various supported output formats (JSON, YAML, Table, etc.).
-
----
-
-## Style & Standards
-
-* **Formatting**:  
-Ensure your code follows the standard Go language conventions (you can run `task fmt` in the project root).
-* **Documentation**:  
-If you are adding a feature, please update any relevant documentation or help text within the CLI and the [README.md](README.md) file.
-* **Tests**:  
-Verify your changes by running existing tests and adding new ones where applicable.  
-If you add JSON paylods in the tests, make sure to add them in the `testdata` directory and reference them in your test code. You can find examples in the existing test files.  
-Please ensure that the payloads are anonymized enough and do not contain any sensitive information.  
-You can run all tests with `task test` (or `go test ./...`).
-
----
-
-## Code of Conduct
-
-We ask that all contributors adhere to the [Code of Conduct](CODE_OF_CONDUCT.md) to maintain a welcoming and inclusive environment for everyone.
-
----
+- **Follow the CLI shape.** `bb` uses `bb <resource> <subresource...> <command>` — resources are nouns (`repository`, `pullrequest`), commands are verbs (`list`, `get`, `create`, `update`, `delete`). Support the standard CRUD verbs where they apply.
+- **`--dry-run`.** Commands that modify data on Bitbucket should support `--dry-run` to preview changes.
+- **Output formats.** Keep `list`/`get` output compatible with the supported formats (JSON, YAML, table, etc.).
+- **Format & test.** Run `task fmt` and `task test` (or `go test ./...`) before opening the PR. Add tests where applicable; put JSON payloads in `testdata/` and anonymize them.
+- **Docs.** Update the CLI help text for any behavior change. User-facing usage docs live in the [wiki](https://github.com/delabrcd/bitbucket-cli/wiki) rather than the README.
 
 ## License
 
-By contributing to Bitbucket-cli, you agree that your contributions will be licensed under the project's current license.
-
-You can find the license details in the [LICENSE](LICENSE) file.
-
----
-
-## Thank You!
-
-Thank you again for your interest in contributing to Bitbucket-cli! We look forward to your contributions and are excited to see how you can help improve the project. If you have any questions or need assistance, please don't hesitate to reach out by opening an issue or joining our discussions. Happy coding!
+By contributing, you agree that your contributions are licensed under the project's [LICENSE](LICENSE) (MIT).
