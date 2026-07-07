@@ -253,6 +253,15 @@ func GetReviewerNicknames(ctx context.Context, cmd *cobra.Command, args []string
 	return common.FilterValidArgs(nicknames, args, toComplete), nil
 }
 
+// GetReviewerTargets gets the reviewer nicknames for the current Workspace along with the special target "default"
+func GetReviewerTargets(ctx context.Context, cmd *cobra.Command, args []string, toComplete string) (targets []string, err error) {
+	nicknames, err := GetReviewerNicknames(ctx, cmd, args, toComplete)
+	if err != nil {
+		return []string{}, err
+	}
+	return common.FilterValidArgs(append([]string{"default"}, nicknames...), args, toComplete), nil
+}
+
 // MarshalJSON implements the json.Marshaler interface.
 func (pullrequest PullRequest) MarshalJSON() (data []byte, err error) {
 	type surrogate PullRequest

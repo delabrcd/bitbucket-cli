@@ -54,7 +54,7 @@ func init() {
 
 	createOptions.Source = flags.NewEnumFlagWithFunc(createCmd, "", branch.GetBranchNames)
 	createOptions.Destination = flags.NewEnumFlagWithFunc(createCmd, "", branch.GetBranchNames)
-	createOptions.Reviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(createCmd, GetReviewerNicknames)
+	createOptions.Reviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(createCmd, GetReviewerTargets)
 
 	createCmd.Flags().StringVar(&createOptions.Title, "title", "", "Title of the pullrequest")
 	createCmd.Flags().StringVar(&createOptions.Description, "description", "", "Description of the pullrequest")

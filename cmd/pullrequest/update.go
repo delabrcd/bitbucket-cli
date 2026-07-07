@@ -43,14 +43,14 @@ func init() {
 	Command.AddCommand(updateCmd)
 
 	updateOptions.Destination = flags.NewEnumFlagWithFunc(updateCmd, "", branch.GetBranchNames)
-	updateOptions.AddReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(updateCmd, GetReviewerNicknames)
+	updateOptions.AddReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(updateCmd, GetReviewerTargets)
 	updateOptions.RemoveReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(updateCmd, GetReviewerNicknames)
 
 	updateCmd.Flags().StringVar(&updateOptions.Title, "title", "", "Title of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.DescriptionFile, "description-file", "", "Read the description from a file (use \"-\" to read from standard input)")
 	updateCmd.Flags().Var(updateOptions.Destination, "destination", "Destination branch of the pullrequest")
-	updateCmd.Flags().Var(updateOptions.AddReviewers, "add-reviewer", "Reviewer(s) to add to the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname.")
+	updateCmd.Flags().Var(updateOptions.AddReviewers, "add-reviewer", "Reviewer(s) to add to the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname. If the first reviewer is `default`, the command will try to find the default reviewers from the repository or project settings.")
 	updateCmd.Flags().Var(updateOptions.RemoveReviewers, "remove-reviewer", "Reviewer(s) to remove from the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname.")
 	updateCmd.Flags().BoolVar(&updateOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch after merging")
 
