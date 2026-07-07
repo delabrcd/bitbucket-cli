@@ -2,6 +2,10 @@
 Unreleased
 =============
 
+0.19.5
+=============
+2026-07-07
+
 * feat: `default` is now a first-class completion/validation target for `bb pr create --reviewer` and `bb pr update --add-reviewer`, so shell completion offers it and enum validation accepts it
 
 0.19.4
