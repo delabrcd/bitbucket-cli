@@ -100,4 +100,4 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
 
-replace github.com/gildas/go-flags => github.com/delabrcd/go-flags v0.5.1
+replace github.com/gildas/go-flags => github.com/delabrcd/go-flags v0.5.2
