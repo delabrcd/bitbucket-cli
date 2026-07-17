@@ -44,7 +44,7 @@ func init() {
 
 	updateOptions.Destination = flags.NewEnumFlagWithFunc(updateCmd, "", branch.GetBranchNames)
 	updateOptions.AddReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(updateCmd, GetReviewerTargets)
-	updateOptions.RemoveReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(updateCmd, GetReviewerNicknames)
+	updateOptions.RemoveReviewers = flags.NewEnumSliceFlagWithAllAllowedAndFunc(updateCmd, GetReviewerIdentifiers)
 
 	updateCmd.Flags().StringVar(&updateOptions.Title, "title", "", "Title of the pullrequest")
 	updateCmd.Flags().StringVar(&updateOptions.Description, "description", "", "Description of the pullrequest")
