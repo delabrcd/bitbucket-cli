@@ -2,6 +2,12 @@
 Unreleased
 =============
 
+0.19.7
+=============
+2026-07-17
+
+* fix: `bb pr create --reviewer`, `bb pr update --add-reviewer`, and `--remove-reviewer` now accept account IDs and UUIDs (braced or unbraced) in addition to names and nicknames, matching the flags' documented forms — previously only names/nicknames passed validation
+
 0.19.6
 =============
 2026-07-17

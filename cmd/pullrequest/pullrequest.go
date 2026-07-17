@@ -231,8 +231,12 @@ func GetPullRequestIDFromArgs(ctx context.Context, cmd *cobra.Command, repositor
 	return args[0], nil
 }
 
-// GetReviewerNicknames gets the reviewer nicknames for the current Workspace
-func GetReviewerNicknames(ctx context.Context, cmd *cobra.Command, args []string, toComplete string) (nicknames []string, err error) {
+// GetReviewerIdentifiers gets every identifier that resolves to a workspace
+// member — nickname, display name, account ID, and UUID — so the reviewer flags
+// accept any of the forms documented in their help. Human-readable names come
+// first (sorted) so completion and truncated validation errors surface names
+// rather than opaque IDs.
+func GetReviewerIdentifiers(ctx context.Context, cmd *cobra.Command, args []string, toComplete string) (identifiers []string, err error) {
 	log := logger.Must(logger.FromContext(ctx)).Child(nil, "getreviewers")
 
 	if cmd == nil {
@@ -240,7 +244,7 @@ func GetReviewerNicknames(ctx context.Context, cmd *cobra.Command, args []string
 		return []string{}, errors.ArgumentMissing.With("cmd")
 	}
 
-	log.Infof("Getting reviewer nicknames for profile %s", profile.Current)
+	log.Infof("Getting reviewer identifiers for profile %s", profile.Current)
 	pullrequestWorkspace, err := workspace.GetWorkspace(cmd.Context(), cmd)
 	if err != nil {
 		log.Errorf("Failed to get repository: %s", err)
@@ -248,18 +252,38 @@ func GetReviewerNicknames(ctx context.Context, cmd *cobra.Command, args []string
 	}
 	log.Infof("Getting members of workspace %s", pullrequestWorkspace)
 	members, _ := pullrequestWorkspace.GetMembers(ctx, cmd)
-	nicknames = core.Map(members, func(member workspace.Member) string { return member.User.Nickname })
-	core.Sort(nicknames, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
-	return common.FilterValidArgs(nicknames, args, toComplete), nil
+
+	var names, ids []string
+	seen := map[string]bool{}
+	add := func(dst *[]string, value string) {
+		if value == "" || seen[value] {
+			return
+		}
+		seen[value] = true
+		*dst = append(*dst, value)
+	}
+	for _, member := range members {
+		add(&names, member.User.Nickname)
+		add(&names, member.User.Name)
+		add(&ids, member.User.AccountID)
+		if !member.User.ID.IsNil() {
+			braced := member.User.ID.String()
+			add(&ids, braced)
+			add(&ids, strings.Trim(braced, "{}"))
+		}
+	}
+	core.Sort(names, func(a, b string) bool { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) == -1 })
+
+	return common.FilterValidArgs(append(names, ids...), args, toComplete), nil
 }
 
-// GetReviewerTargets gets the reviewer nicknames for the current Workspace along with the special target "default"
+// GetReviewerTargets gets the reviewer identifiers for the current Workspace along with the special target "default"
 func GetReviewerTargets(ctx context.Context, cmd *cobra.Command, args []string, toComplete string) (targets []string, err error) {
-	nicknames, err := GetReviewerNicknames(ctx, cmd, args, toComplete)
+	identifiers, err := GetReviewerIdentifiers(ctx, cmd, args, toComplete)
 	if err != nil {
 		return []string{}, err
 	}
-	return common.FilterValidArgs(append([]string{"default"}, nicknames...), args, toComplete), nil
+	return common.FilterValidArgs(append([]string{"default"}, identifiers...), args, toComplete), nil
 }
 
 // MarshalJSON implements the json.Marshaler interface.
