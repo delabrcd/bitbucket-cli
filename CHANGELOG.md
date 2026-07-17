@@ -2,6 +2,12 @@
 Unreleased
 =============
 
+0.19.6
+=============
+2026-07-17
+
+* fix: an invalid value for a function-backed enum flag (e.g. `bb pr create --reviewer`) no longer dumps the entire allowed set — the error now lists the first 15 values and a count of the remainder (via go-flags v0.5.2)
+
 0.19.5
 =============
 2026-07-07
