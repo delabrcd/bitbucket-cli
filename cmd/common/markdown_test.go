@@ -1,6 +1,10 @@
 package common
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/spf13/cobra"
+)
 
 func TestNormalizeMarkdown(t *testing.T) {
 	tests := []struct {
@@ -84,4 +88,25 @@ func indexOf(s, sub string) int {
 		}
 	}
 	return -1
+}
+
+func TestMaybeFixupMarkdown(t *testing.T) {
+	in := "Test plan:\n- [x] one\n"
+
+	on := &cobra.Command{}
+	on.Flags().Bool("no-markdown-fixup", false, "")
+	if got := MaybeFixupMarkdown(on, in); !contains(got, "Test plan:\n\n- ") {
+		t.Fatalf("fixup should run when flag is false; got %q", got)
+	}
+
+	off := &cobra.Command{}
+	off.Flags().Bool("no-markdown-fixup", true, "")
+	if got := MaybeFixupMarkdown(off, in); got != in {
+		t.Fatalf("fixup should be skipped when flag is true; got %q", got)
+	}
+
+	none := &cobra.Command{} // flag not registered -> default to enabled
+	if got := MaybeFixupMarkdown(none, in); !contains(got, "Test plan:\n\n- ") {
+		t.Fatalf("fixup should run when flag absent; got %q", got)
+	}
 }

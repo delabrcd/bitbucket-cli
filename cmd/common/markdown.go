@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	markdownfmt "github.com/Kunde21/markdownfmt/v3"
+	"github.com/spf13/cobra"
 )
 
 var listItemLine = regexp.MustCompile(`^ {0,3}([-*+]|\d{1,9}[.)])\s`)
@@ -32,6 +33,15 @@ func NormalizeMarkdown(raw string) string {
 		fixed = strings.TrimRight(fixed, "\n")
 	}
 	return fixed
+}
+
+// MaybeFixupMarkdown applies NormalizeMarkdown unless the --no-markdown-fixup
+// persistent flag is set on the command.
+func MaybeFixupMarkdown(cmd *cobra.Command, raw string) string {
+	if flag := cmd.Flag("no-markdown-fixup"); flag != nil && flag.Value != nil && flag.Value.String() == "true" {
+		return raw
+	}
+	return NormalizeMarkdown(raw)
 }
 
 func insertBlankLinesBeforeLists(s string) string {

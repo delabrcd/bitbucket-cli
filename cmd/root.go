@@ -35,19 +35,20 @@ import (
 
 // RootOptions describes the options for the application
 type RootOptions struct {
-	ConfigFile     string          `mapstructure:"-"`
-	LogDestination string          `mapstructure:"-"`
-	ProfileName    string          `mapstructure:"-"`
-	Repository     string          `mapstructure:"-"`
-	Workspace      *flags.EnumFlag `mapstructure:"-"`
-	OutputFormat   flags.EnumFlag  `mapstructure:"-"`
-	JQ             string          `mapstructure:"-"`
-	DryRun         bool            `mapstructure:"-"`
-	Verbose        bool            `mapstructure:"-"`
-	Debug          bool            `mapstructure:"-"`
-	StopOnError    bool            `mapstructure:"-"`
-	WarnOnError    bool            `mapstructure:"-"`
-	IgnoreErrors   bool            `mapstructure:"-"`
+	ConfigFile      string          `mapstructure:"-"`
+	LogDestination  string          `mapstructure:"-"`
+	ProfileName     string          `mapstructure:"-"`
+	Repository      string          `mapstructure:"-"`
+	Workspace       *flags.EnumFlag `mapstructure:"-"`
+	OutputFormat    flags.EnumFlag  `mapstructure:"-"`
+	JQ              string          `mapstructure:"-"`
+	DryRun          bool            `mapstructure:"-"`
+	NoMarkdownFixup bool            `mapstructure:"-"`
+	Verbose         bool            `mapstructure:"-"`
+	Debug           bool            `mapstructure:"-"`
+	StopOnError     bool            `mapstructure:"-"`
+	WarnOnError     bool            `mapstructure:"-"`
+	IgnoreErrors    bool            `mapstructure:"-"`
 }
 
 // CmdOptions contains the options for the application
@@ -81,6 +82,7 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.DryRun, "dry-run", false, "Dry run, the command will not modify anything but tell what it would do. \nAlso known as --noop or --whatif")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.DryRun, "noop", false, "Dry run, the command will not modify anything but tell what it would do. \nAlso known as --dry-run or --whatif")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.DryRun, "whatif", false, "Dry run, the command will not modify anything but tell what it would do. \nAlso known as --dry-run or --noop")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.NoMarkdownFixup, "no-markdown-fixup", false, "Do not normalize markdown (descriptions/comments) before sending")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.Debug, "debug", false, "logs are written at DEBUG level, overrides DEBUG environment variable")
 	RootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
 	RootCmd.PersistentFlags().VarP(&CmdOptions.OutputFormat, "output", "o", "Output format (json, yaml, table). Overrides the default output format of the profile")
