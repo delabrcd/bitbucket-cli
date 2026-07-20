@@ -71,7 +71,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if len(createOptions.Description) > 0 {
-		payload.Content = &common.RenderedText{Raw: createOptions.Description, Markup: "markdown"}
+		payload.Content = &common.RenderedText{Raw: common.MaybeFixupMarkdown(cmd, createOptions.Description), Markup: "markdown"}
 	}
 
 	if strings.ToLower(createOptions.Assignee) == "me" || strings.ToLower(createOptions.Assignee) == "myself" {

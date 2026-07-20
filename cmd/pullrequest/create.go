@@ -122,6 +122,8 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		return errors.ArgumentMissing.With("title")
 	}
 
+	description = common.MaybeFixupMarkdown(cmd, description)
+
 	payload := PullRequestCreator{
 		Title:             title,
 		Description:       description,

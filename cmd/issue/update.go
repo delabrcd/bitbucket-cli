@@ -89,7 +89,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if len(updateOptions.Description) > 0 {
-		payload.Content = &common.RenderedText{Raw: updateOptions.Description, Markup: "markdown"}
+		payload.Content = &common.RenderedText{Raw: common.MaybeFixupMarkdown(cmd, updateOptions.Description), Markup: "markdown"}
 	}
 
 	if strings.ToLower(updateOptions.Assignee) == "me" || strings.ToLower(updateOptions.Assignee) == "myself" {

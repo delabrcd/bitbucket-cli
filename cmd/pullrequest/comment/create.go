@@ -107,7 +107,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	payload := CommentCreator{
-		Content: ContentCreator{Raw: body},
+		Content: ContentCreator{Raw: common.MaybeFixupMarkdown(cmd, body)},
 	}
 
 	if createOptions.ParentID > 0 {
