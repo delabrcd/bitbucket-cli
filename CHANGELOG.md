@@ -2,6 +2,12 @@
 Unreleased
 =============
 
+0.19.8
+=============
+2026-07-20
+
+* feat: `bb` now normalizes markdown in outgoing pull request and issue descriptions and comments so lists render correctly on Bitbucket — a list that immediately follows a paragraph (e.g. a "Test plan:" checklist) previously collapsed into that paragraph instead of rendering as a list; pass `--no-markdown-fixup` to opt out
+
 0.19.7
 =============
 2026-07-17
