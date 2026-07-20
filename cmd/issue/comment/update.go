@@ -69,7 +69,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 
 	payload := CommentUpdator{
 		Content: common.RenderedText{
-			Raw:    updateOptions.Comment,
+			Raw:    common.MaybeFixupMarkdown(cmd, updateOptions.Comment),
 			Markup: "markdown",
 		},
 	}

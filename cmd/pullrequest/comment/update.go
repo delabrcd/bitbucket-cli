@@ -6,7 +6,7 @@ import (
 
 	"github.com/delabrcd/bitbucket-cli/cmd/common"
 	"github.com/delabrcd/bitbucket-cli/cmd/profile"
-	"github.com/delabrcd/bitbucket-cli/cmd/pullrequest/common"
+	prcommon "github.com/delabrcd/bitbucket-cli/cmd/pullrequest/common"
 	"github.com/delabrcd/bitbucket-cli/cmd/repository"
 	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
@@ -103,7 +103,7 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	payload := CommentUpdator{
-		Content: ContentUpdator{Raw: updateOptions.Comment},
+		Content: ContentUpdator{Raw: common.MaybeFixupMarkdown(cmd, updateOptions.Comment)},
 	}
 
 	if updateOptions.File != "" {

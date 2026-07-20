@@ -55,7 +55,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	payload := CommentCreator{
 		Content: common.RenderedText{
-			Raw:    createOptions.Comment,
+			Raw:    common.MaybeFixupMarkdown(cmd, createOptions.Comment),
 			Markup: "markdown",
 		},
 	}

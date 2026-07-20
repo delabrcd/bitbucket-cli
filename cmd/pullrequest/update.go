@@ -121,6 +121,7 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 			}
 			description = string(data)
 		}
+		description = common.MaybeFixupMarkdown(cmd, description)
 		pullrequest.Description = description
 		pullrequest.Summary.Raw = description
 		updateWanted = true
