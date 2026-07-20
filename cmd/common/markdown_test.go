@@ -1,6 +1,7 @@
 package common
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -8,10 +9,11 @@ import (
 
 func TestNormalizeMarkdown(t *testing.T) {
 	tests := []struct {
-		name     string
-		in       string
-		contains []string // substrings that must appear in output
-		equal    string   // if set, output must equal this exactly
+		name      string
+		in        string
+		contains  []string // substrings that must appear in output
+		equal     string   // exact expected output, used when wantEqual is true
+		wantEqual bool
 	}{
 		{
 			name:     "list interrupting paragraph gains blank line",
@@ -44,32 +46,35 @@ func TestNormalizeMarkdown(t *testing.T) {
 			contains: []string{"@someone", ":tada:"},
 		},
 		{
-			name:  "empty input unchanged",
-			in:    "",
-			equal: "",
+			name:      "empty input unchanged",
+			in:        "",
+			equal:     "",
+			wantEqual: true,
 		},
 		{
-			name:  "whitespace-only input unchanged",
-			in:    "   \n\t\n",
-			equal: "   \n\t\n",
+			name:      "whitespace-only input unchanged",
+			in:        "   \n\t\n",
+			equal:     "   \n\t\n",
+			wantEqual: true,
 		},
 		{
-			name:  "no trailing newline is not added",
-			in:    "just a line",
-			equal: "just a line",
+			name:      "no trailing newline is not added",
+			in:        "just a line",
+			equal:     "just a line",
+			wantEqual: true,
 		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			got := NormalizeMarkdown(tc.in)
-			if tc.equal != "" || tc.in == "" {
+			if tc.wantEqual {
 				if got != tc.equal {
 					t.Fatalf("got %q, want %q", got, tc.equal)
 				}
 				return
 			}
 			for _, sub := range tc.contains {
-				if !contains(got, sub) {
+				if !strings.Contains(got, sub) {
 					t.Fatalf("output missing %q\n--- got ---\n%s", sub, got)
 				}
 			}
@@ -77,25 +82,12 @@ func TestNormalizeMarkdown(t *testing.T) {
 	}
 }
 
-func contains(s, sub string) bool {
-	return len(sub) == 0 || (len(s) >= len(sub) && indexOf(s, sub) >= 0)
-}
-
-func indexOf(s, sub string) int {
-	for i := 0; i+len(sub) <= len(s); i++ {
-		if s[i:i+len(sub)] == sub {
-			return i
-		}
-	}
-	return -1
-}
-
 func TestMaybeFixupMarkdown(t *testing.T) {
 	in := "Test plan:\n- [x] one\n"
 
 	on := &cobra.Command{}
 	on.Flags().Bool("no-markdown-fixup", false, "")
-	if got := MaybeFixupMarkdown(on, in); !contains(got, "Test plan:\n\n- ") {
+	if got := MaybeFixupMarkdown(on, in); !strings.Contains(got, "Test plan:\n\n- ") {
 		t.Fatalf("fixup should run when flag is false; got %q", got)
 	}
 
@@ -106,7 +98,18 @@ func TestMaybeFixupMarkdown(t *testing.T) {
 	}
 
 	none := &cobra.Command{} // flag not registered -> default to enabled
-	if got := MaybeFixupMarkdown(none, in); !contains(got, "Test plan:\n\n- ") {
+	if got := MaybeFixupMarkdown(none, in); !strings.Contains(got, "Test plan:\n\n- ") {
 		t.Fatalf("fixup should run when flag absent; got %q", got)
+	}
+}
+
+func TestInsertBlankLinesBeforeLists_LongFenceNotClosedEarly(t *testing.T) {
+	in := "Intro.\n````\ninner\n```\n- bullet\n````\nafter\n"
+	got := insertBlankLinesBeforeLists(in)
+	if strings.Contains(got, "```\n\n- bullet") {
+		t.Fatalf("blank line inserted inside fenced code block\n--- got ---\n%s", got)
+	}
+	if got != in {
+		t.Fatalf("expected input unchanged since the bullet is inside the fence\ngot:  %q\nwant: %q", got, in)
 	}
 }

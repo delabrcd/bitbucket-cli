@@ -44,17 +44,36 @@ func MaybeFixupMarkdown(cmd *cobra.Command, raw string) string {
 	return NormalizeMarkdown(raw)
 }
 
+// fenceRun reports the fence char and run length at the start of a trimmed
+// line, e.g. "````info" -> ('`', 4). It returns (0, 0) if the line doesn't
+// start with a backtick or tilde.
+func fenceRun(trimmed string) (ch byte, n int) {
+	if trimmed == "" {
+		return 0, 0
+	}
+	ch = trimmed[0]
+	if ch != '`' && ch != '~' {
+		return 0, 0
+	}
+	for n < len(trimmed) && trimmed[n] == ch {
+		n++
+	}
+	return ch, n
+}
+
 func insertBlankLinesBeforeLists(s string) string {
 	lines := strings.Split(s, "\n")
 	out := make([]string, 0, len(lines)+4)
 	inFence := false
-	fence := ""
+	var fenceChar byte
+	fenceLen := 0
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
+		ch, n := fenceRun(trimmed)
 		switch {
-		case !inFence && (strings.HasPrefix(trimmed, "```") || strings.HasPrefix(trimmed, "~~~")):
-			inFence, fence = true, trimmed[:3]
-		case inFence && strings.HasPrefix(trimmed, fence):
+		case !inFence && n >= 3:
+			inFence, fenceChar, fenceLen = true, ch, n
+		case inFence && ch == fenceChar && n == len(trimmed) && n >= fenceLen:
 			inFence = false
 		}
 		if !inFence && i > 0 && listItemLine.MatchString(line) {
