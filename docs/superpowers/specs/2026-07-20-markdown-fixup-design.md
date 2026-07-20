@@ -26,25 +26,47 @@ formatting rules.
 
 ## Approach
 
-Round-trip the markdown through a CommonMark parser and re-serialize it. goldmark
-parses `Test plan:` and the following list as separate blocks (CommonMark allows
-bullet lists to interrupt paragraphs), and the markdown renderer emits the
-required blank line between them. This fixes the reported bug as a side effect of
-faithful re-serialization, and handles the general class of "missing blank line
-before a block" problems rather than one special case.
+A two-stage pipeline:
+
+1. **Round-trip normalization.** Re-serialize the markdown through a CommonMark
+   parser+renderer (`markdownfmt`, goldmark under the hood, GFM enabled). This
+   normalizes presentation (unified list markers, consistent block spacing) and
+   preserves content.
+2. **Blank-line insertion pass.** A targeted pass that inserts a blank line
+   before any list block that directly follows a non-blank, non-list line.
+
+**Why stage 2 is required (proven empirically):** the round-trip alone does
+*not* fix the bug. CommonMark treats a list that immediately follows a paragraph
+(`Test plan:\n- item`) as a valid list — no blank line needed — so a faithful
+renderer *preserves* exactly the tight form Bitbucket chokes on. markdownfmt was
+verified to emit `Test plan:\n- [X] item` unchanged. Empirically, markdownfmt
+separates every *other* block with a blank line; the paragraph→list interrupt is
+the only tight case left, so stage 2 only has to handle that one pattern.
 
 ### Library choice
 
-- Parser: `github.com/yuin/goldmark` (v1.8.x) with the GFM extension enabled
-  (tables, task lists, strikethrough, autolinks) so those constructs survive.
-- Renderer: `github.com/Kunde21/markdownfmt/v3` (v3.1.x) — a goldmark-based
-  markdown→markdown renderer.
+- `github.com/Kunde21/markdownfmt/v3` (v3.1.x) — goldmark-based markdown→markdown
+  renderer, GFM enabled by default (tables, task lists, strikethrough, autolinks
+  all survive). Entry point: `markdownfmt.Process("", []byte(raw))`.
+- No separate direct goldmark dependency is required for the helper (markdownfmt
+  vendors it); the insertion pass is plain string/regex work.
+
+### The blank-line insertion pass
+
+Operate line-by-line on the round-tripped output:
+
+- Track fenced code blocks (``` ``` ``` and `~~~`); never insert inside a fence.
+- A line is a **list item** if it matches `^ {0,3}([-*+]|\d{1,9}[.)])\s`
+  (bullet, or ordered — this deliberately excludes `---` thematic breaks / setext
+  underlines, which have no trailing space+content).
+- For each list-item line at index `i > 0`, if the previous line is non-blank and
+  is **not** itself a list item, insert one blank line before it.
 
 ### The helper
 
 New package/function: `markdown.NormalizeMarkdown(raw string) string`.
 
-- Parse `raw` with goldmark (GFM), render back to markdown with markdownfmt.
+- Stage 1: `markdownfmt.Process`. Stage 2: the insertion pass on the result.
 - **Safety fallback:** if parsing or rendering returns an error, or produces an
   empty result while the input was non-empty, return the original `raw`
   unchanged. The function must never emit worse output than it received.
@@ -115,5 +137,6 @@ No live API calls in tests — the helper is pure string→string.
 
 - Config-file key for the opt-out (flag only for now).
 - Normalizing titles or any non-markdown field.
-- A "narrow, insert-only-missing-blank-lines" renderer variant (the full
-  round-trip with cosmetic reflow was chosen deliberately).
+- Making the round-trip optional/separable from the insertion pass. The full
+  round-trip (cosmetic reflow) was chosen deliberately and runs before the
+  insertion pass that actually fixes rendering.
