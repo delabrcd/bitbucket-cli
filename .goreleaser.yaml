@@ -62,6 +62,18 @@ nfpms:
       - archlinux
     bindir: /usr/bin
     section: utils
+    # Runtime dependencies. bb shells out to `git` (pr create --fill, repository
+    # clone) and to `xdg-open` (OAuth browser flow, profile authorize); both are
+    # named identically on Debian/Fedora/Arch. gnome-keyring provides the D-Bus
+    # Secret Service that backs the credential vault (token/password storage);
+    # it is only Recommended because bb falls back to plaintext config when no
+    # secret service is available, and headless hosts often lack one. Arch has
+    # no weak-dependency concept, so recommends is a no-op there.
+    dependencies:
+      - git
+      - xdg-utils
+    recommends:
+      - gnome-keyring
     # Shell completions generated in the before-hook above (completions/bb,
     # completions/_bb, completions/bb.fish); ship them so the package manager
     # installs them into the standard system completion directories.
