@@ -58,6 +58,32 @@ func (suite *ProfileSuite) TestGetAll_OriginalQueryIsPreservedForNextMissingPara
 	suite.Require().Equal("2", items[1].ID)
 }
 
+func (suite *ProfileSuite) TestAuthorize_DoesNotPanicWhenNoTokenAvailable() {
+	oldCurrent := profile.Current
+	defer func() { profile.Current = oldCurrent }()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{"values": []map[string]string{}})
+	}))
+	defer server.Close()
+
+	apiRoot, err := url.Parse(server.URL)
+	suite.Require().NoError(err)
+	// A profile that has no user (so send() does not use basic auth), no access
+	// token, no cached token and no client secret. loadAccessToken leaves
+	// profile.token nil while returning a nil error, so authorize must not
+	// dereference the nil token.
+	profile.Current = &profile.Profile{Name: "no-token", APIRoot: apiRoot, ClientID: "clientid-without-secret"}
+
+	cmd := &cobra.Command{}
+	cmd.Flags().String("profile", "", "")
+	cmd.SetContext(suite.Context)
+	suite.Require().NotPanics(func() {
+		_ = profile.Current.Get(suite.Context, cmd, "/workspaces", &testItem{})
+	}, "authorize must not panic when no token is available")
+}
+
 func (suite *ProfileSuite) TestGetAll_DoesNotOverwriteExistingNextParams() {
 	oldCurrent := profile.Current
 	defer func() { profile.Current = oldCurrent }()
