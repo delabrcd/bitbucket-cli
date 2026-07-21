@@ -2,6 +2,13 @@
 Unreleased
 =============
 
+0.19.9
+=============
+2026-07-21
+
+* fix: creating or using a profile no longer segfaults when a workspace/project default (e.g. `bb profile create --default-workspace`) triggers a Bitbucket lookup while the current profile has no stored token — `authorize` no longer dereferences a nil token
+* build: the Linux deb/rpm/pacman packages now depend on `git` and `xdg-utils` and recommend `gnome-keyring`, so a fresh install pulls in the tools `bb` shells out to for git operations, the OAuth browser flow, and the credential vault
+
 0.19.8
 =============
 2026-07-20
