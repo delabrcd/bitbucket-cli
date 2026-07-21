@@ -406,7 +406,7 @@ func (profile *Profile) authorize(ctx context.Context) (authorization string, er
 	log := logger.Must(logger.FromContext(ctx)).Child(nil, "authorize")
 
 	if err := profile.loadAccessToken(ctx); err == nil {
-		if !profile.isTokenExpired() {
+		if profile.token != nil && !profile.isTokenExpired() {
 			log.Infof("Using access token for profile %s", profile.Name)
 			log.Debugf("Token expires on %s in %s", profile.token.GetExpiresOn().Format(time.RFC3339), profile.token.GetExpiresIn())
 			return request.BearerAuthorization(profile.token.AccessToken), nil
