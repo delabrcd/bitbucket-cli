@@ -31,6 +31,12 @@ full URL (https://...) is used verbatim, which is handy for following pagination
 
 The method defaults to GET, or to POST when any field or request body is provided.
 
+This command is the escape hatch for endpoints bb does not cover yet. When a
+dedicated command already covers the endpoint, a write (POST/PUT/DELETE) is
+refused and names that command instead, because the raw request skips the
+markdown normalization, argument validation and output formatting the command
+provides. A read only prints a note. Pass --force to send the request anyway.
+
 Examples:
   # Get the current user
   bb api user
@@ -60,6 +66,7 @@ var apiOptions struct {
 	ContentType string
 	Paginate    bool
 	Include     bool
+	Force       bool
 	JQ          string
 }
 
@@ -72,6 +79,7 @@ func init() {
 	Command.Flags().StringVar(&apiOptions.ContentType, "content-type", "", "Content-Type of the request body (default application/json)")
 	Command.Flags().BoolVar(&apiOptions.Paginate, "paginate", false, "Follow \"next\" links, merging every page's values into a single result")
 	Command.Flags().BoolVarP(&apiOptions.Include, "include", "i", false, "Include the response status line and headers in the output")
+	Command.Flags().BoolVar(&apiOptions.Force, "force", false, "Send the request even when a dedicated bb command already covers the endpoint")
 
 	Command.MarkFlagsMutuallyExclusive("input", "field")
 	Command.MarkFlagsMutuallyExclusive("input", "raw-field")
@@ -110,6 +118,11 @@ func apiProcess(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	endpoint := normalizeEndpoint(args[0])
+
+	if err = checkNativeCommand(method, endpoint); err != nil {
+		return err
+	}
+
 	log.Infof("Calling %s %s", method, endpoint)
 
 	if apiOptions.Paginate {

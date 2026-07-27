@@ -7,6 +7,7 @@ import (
 	"github.com/delabrcd/bitbucket-cli/cmd/common"
 	"github.com/delabrcd/bitbucket-cli/cmd/profile"
 	"github.com/delabrcd/bitbucket-cli/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -26,8 +27,9 @@ var updateCmd = &cobra.Command{
 }
 
 var updateOptions struct {
-	IssueID *flags.EnumFlag
-	Comment string
+	IssueID     *flags.EnumFlag
+	Comment     string
+	CommentFile string
 }
 
 func init() {
@@ -36,8 +38,11 @@ func init() {
 	updateOptions.IssueID = flags.NewEnumFlagWithFunc(updateCmd, "", GetIssueIDs)
 	updateCmd.Flags().Var(updateOptions.IssueID, "issue", "Issue to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the issue")
+	updateCmd.Flags().StringVar(&updateOptions.CommentFile, "comment-file", "", "Read the updated comment from a file (use \"-\" to read from standard input)")
+	_ = updateCmd.MarkFlagFilename("comment-file")
+	updateCmd.MarkFlagsMutuallyExclusive("comment", "comment-file")
+	updateCmd.MarkFlagsOneRequired("comment", "comment-file")
 	_ = updateCmd.MarkFlagRequired("issue")
-	_ = updateCmd.MarkFlagRequired("comment")
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.IssueID.CompletionFunc("issue"))
 }
 
@@ -67,15 +72,27 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	body := updateOptions.Comment
+	if cmd.Flag("comment-file").Changed {
+		data, rerr := common.ReadFileOrStdin(updateOptions.CommentFile)
+		if rerr != nil {
+			return rerr
+		}
+		body = string(data)
+	}
+	if len(body) == 0 {
+		return errors.ArgumentMissing.With("comment")
+	}
+
 	payload := CommentUpdator{
 		Content: common.RenderedText{
-			Raw:    common.MaybeFixupMarkdown(cmd, updateOptions.Comment),
+			Raw:    common.MaybeFixupMarkdown(cmd, body),
 			Markup: "markdown",
 		},
 	}
 
 	log.Record("payload", payload).Infof("Updating issue comment")
-	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating comment %s for issue %s", updateOptions.Comment, updateOptions.IssueID) {
+	if !common.WhatIf(log.ToContext(cmd.Context()), cmd, "Updating comment %s for issue %s", args[0], updateOptions.IssueID) {
 		return nil
 	}
 	var comment Comment

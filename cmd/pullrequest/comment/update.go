@@ -52,6 +52,7 @@ either.`,
 var updateOptions struct {
 	PullRequestID *flags.EnumFlag
 	Comment       string
+	CommentFile   string
 	File          string
 	From          int
 	To            int
@@ -65,6 +66,7 @@ func init() {
 	updateOptions.PullRequestID = flags.NewEnumFlagWithFunc(updateCmd, "", prcommon.GetPullRequestIDs)
 	updateCmd.Flags().Var(updateOptions.PullRequestID, "pullrequest", "Pullrequest to update comments to")
 	updateCmd.Flags().StringVar(&updateOptions.Comment, "comment", "", "Updated comment of the pullrequest")
+	updateCmd.Flags().StringVar(&updateOptions.CommentFile, "comment-file", "", "Read the updated comment from a file (use \"-\" to read from standard input)")
 	updateCmd.Flags().StringVar(&updateOptions.File, "file", "", "File to comment on")
 	updateCmd.Flags().IntVar(&updateOptions.To, "line", 0, "Alias for --to (NEW/post-change side); the common added-line case. Cannot be used with --to")
 	updateCmd.Flags().IntVar(&updateOptions.From, "from", 0, "Anchor on the OLD (pre-change) side of the diff; use for removed lines")
@@ -72,8 +74,10 @@ func init() {
 	updateCmd.Flags().Int64Var(&updateOptions.ParentID, "parent", 0, "Parent comment ID to reply to")
 	updateCmd.Flags().BoolVar(&updateOptions.Pending, "pending", false, "Mark the comment as pending")
 	updateCmd.MarkFlagsMutuallyExclusive("line", "to")
+	_ = updateCmd.MarkFlagFilename("comment-file")
+	updateCmd.MarkFlagsMutuallyExclusive("comment", "comment-file")
+	updateCmd.MarkFlagsOneRequired("comment", "comment-file")
 	_ = updateCmd.MarkFlagRequired("pullrequest")
-	_ = updateCmd.MarkFlagRequired("comment")
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
@@ -102,8 +106,20 @@ func updateProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	body := updateOptions.Comment
+	if cmd.Flag("comment-file").Changed {
+		data, rerr := common.ReadFileOrStdin(updateOptions.CommentFile)
+		if rerr != nil {
+			return rerr
+		}
+		body = string(data)
+	}
+	if len(body) == 0 {
+		return errors.ArgumentMissing.With("comment")
+	}
+
 	payload := CommentUpdator{
-		Content: ContentUpdator{Raw: common.MaybeFixupMarkdown(cmd, updateOptions.Comment)},
+		Content: ContentUpdator{Raw: common.MaybeFixupMarkdown(cmd, body)},
 	}
 
 	if updateOptions.File != "" {
