@@ -2,6 +2,10 @@
 Unreleased
 =============
 
+0.19.10
+=============
+2026-07-27
+
 * feat: `bb api` now refuses a write (POST/PUT/DELETE) to an endpoint a dedicated command already covers and names that command instead — a raw request skips the markdown normalization, argument validation and output formatting the command provides. A covered read only prints a note on stderr, and `--force` sends the request regardless
 * feat: `bb pr comment update` and `bb issue comment create|update` accept `--comment-file <file|->`, like `bb pr comment create` already did, so a long comment body no longer has to be shell-quoted
 
