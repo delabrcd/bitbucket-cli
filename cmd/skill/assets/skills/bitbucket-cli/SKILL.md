@@ -34,6 +34,8 @@ bb api <endpoint> [-X METHOD] [-f key=val] [-F key=val] [--input body.json] [--p
 - `-i` includes the response status line + headers.
 - `-q <expr>` / `--jq <expr>` filters the JSON response through the embedded jq engine before printing (no external `jq` needed); with `--paginate` it runs against the merged `{"values": […]}` document.
 
+**`bb api` refuses endpoints a typed subcommand already covers.** A write (POST/PUT/DELETE) to a covered route errors out and names the command to use instead; a covered read only prints a note on stderr. `--force` overrides both. Do not reach for `--force` to get past it — the typed command exists because the raw request skips the markdown normalization, the inline-anchor/flag validation and the output formatting. If the typed command seems to be missing an option you need (a file-based body, a field it does not set), say so rather than working around it with `--force`.
+
 Common endpoints worth knowing (all relative, no `/2.0`):
 
 - `repositories/{workspace}/{repo}/commit/{sha}/statuses` — commit build statuses (the merge gate; no typed subcommand for this)
@@ -104,7 +106,7 @@ When leaving review feedback, follow this workflow (actionable comments + **one*
    - `--from <line>` = OLD (pre-change) side — use for **removed** ("-") lines.
    - File line numbers from `grep -n` on the head revision are NEW-side → `--to`.
    - `--parent <comment-id>` replies to an existing comment.
-   - `--comment-file <f|->` reads the body from a file or stdin.
+   - `--comment-file <f|->` reads the body from a file or stdin — also on `bb pr comment update` and `bb issue comment create|update`. Use it for any long or multi-line body instead of shell-quoting it.
    - Only inline (diff) comments can be **resolved** (`bb pr comment resolve <comment-id>`); a general comment returns `403 "You can only resolve comments on the diff."` — another reason to make everything inline where possible.
 
 2. **Batch into one notification with `--pending`.** Stage every comment as a draft by adding `--pending`. A pending comment is a draft: visible only to the review author, sends **no** notification. Do not fire non-pending comments hoping the notifier debounces — it doesn't; that's one email per comment.

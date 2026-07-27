@@ -7,6 +7,7 @@ import (
 	"github.com/delabrcd/bitbucket-cli/cmd/common"
 	"github.com/delabrcd/bitbucket-cli/cmd/profile"
 	"github.com/delabrcd/bitbucket-cli/cmd/repository"
+	"github.com/gildas/go-errors"
 	"github.com/gildas/go-flags"
 	"github.com/gildas/go-logger"
 	"github.com/spf13/cobra"
@@ -25,8 +26,9 @@ var createCmd = &cobra.Command{
 }
 
 var createOptions struct {
-	IssueID *flags.EnumFlag
-	Comment string
+	IssueID     *flags.EnumFlag
+	Comment     string
+	CommentFile string
 }
 
 func init() {
@@ -35,8 +37,11 @@ func init() {
 	createOptions.IssueID = flags.NewEnumFlagWithFunc(createCmd, "", GetIssueIDs)
 	createCmd.Flags().Var(createOptions.IssueID, "issue", "Issue to create comments to")
 	createCmd.Flags().StringVar(&createOptions.Comment, "comment", "", "Comment of the issue")
+	createCmd.Flags().StringVar(&createOptions.CommentFile, "comment-file", "", "Read the comment from a file (use \"-\" to read from standard input)")
+	_ = createCmd.MarkFlagFilename("comment-file")
+	createCmd.MarkFlagsMutuallyExclusive("comment", "comment-file")
+	createCmd.MarkFlagsOneRequired("comment", "comment-file")
 	_ = createCmd.MarkFlagRequired("issue")
-	_ = createCmd.MarkFlagRequired("comment")
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.IssueID.CompletionFunc("issue"))
 }
 
@@ -53,9 +58,21 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
+	body := createOptions.Comment
+	if cmd.Flag("comment-file").Changed {
+		data, rerr := common.ReadFileOrStdin(createOptions.CommentFile)
+		if rerr != nil {
+			return rerr
+		}
+		body = string(data)
+	}
+	if len(body) == 0 {
+		return errors.ArgumentMissing.With("comment")
+	}
+
 	payload := CommentCreator{
 		Content: common.RenderedText{
-			Raw:    common.MaybeFixupMarkdown(cmd, createOptions.Comment),
+			Raw:    common.MaybeFixupMarkdown(cmd, body),
 			Markup: "markdown",
 		},
 	}

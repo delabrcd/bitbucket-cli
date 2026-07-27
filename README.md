@@ -37,7 +37,7 @@ bb pullrequest merge
 
 `bb` uses a clean `bb <resource> <action>` grammar. Get help on anything with `bb --help` or `bb <subcommand> --help`. By default it works in the current git repository; most commands accept `--repository`, `--workspace`, `--output <format>`, and `--dry-run`.
 
-For endpoints without a dedicated command, `bb api` is a `gh api`-style authenticated passthrough to the [Bitbucket Cloud REST API](https://developer.atlassian.com/cloud/bitbucket/rest/intro/).
+For endpoints without a dedicated command, `bb api` is a `gh api`-style authenticated passthrough to the [Bitbucket Cloud REST API](https://developer.atlassian.com/cloud/bitbucket/rest/intro/). When a dedicated command *does* cover the endpoint, `bb api` refuses the write and names that command instead — pass `--force` to send the raw request anyway.
 
 ## Documentation
 
