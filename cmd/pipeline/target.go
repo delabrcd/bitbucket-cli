@@ -11,7 +11,11 @@ import (
 // Target represents the target of a pipeline (branch, tag, etc.)
 type Target interface {
 	core.TypeCarrier
+	// GetBranch returns the branch being built, which for a pullrequest target is
+	// its source. GetDestination returns the merge destination instead.
+	GetBranch() string
 	GetDestination() string
+	GetPullRequestID() uint64
 	GetCommit() *commit.CommitReference
 }
 

@@ -70,7 +70,13 @@ var columns = common.Columns[Pipeline]{
 		return strings.Compare(strings.ToLower(a.State.Name), strings.ToLower(b.State.Name)) == -1
 	}},
 	{Name: "branch", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
+		return strings.Compare(strings.ToLower(a.Target.GetBranch()), strings.ToLower(b.Target.GetBranch())) == -1
+	}},
+	{Name: "destination", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
 		return strings.Compare(strings.ToLower(a.Target.GetDestination()), strings.ToLower(b.Target.GetDestination())) == -1
+	}},
+	{Name: "pullrequest", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
+		return a.Target.GetPullRequestID() < b.Target.GetPullRequestID()
 	}},
 	{Name: "creator", DefaultSorter: false, Compare: func(a, b Pipeline) bool {
 		return strings.Compare(strings.ToLower(a.Creator.Name), strings.ToLower(b.Creator.Name)) == -1
@@ -136,7 +142,15 @@ func (pipeline Pipeline) GetRow(headers []string) []string {
 		case "state":
 			row = append(row, pipeline.State.String())
 		case "branch":
+			row = append(row, pipeline.Target.GetBranch())
+		case "destination":
 			row = append(row, pipeline.Target.GetDestination())
+		case "pullrequest", "pull_request", "pr":
+			if id := pipeline.Target.GetPullRequestID(); id > 0 {
+				row = append(row, fmt.Sprintf("#%d", id))
+			} else {
+				row = append(row, " ")
+			}
 		case "creator":
 			row = append(row, pipeline.Creator.Name)
 		case "duration":

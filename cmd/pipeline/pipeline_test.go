@@ -146,6 +146,34 @@ func (suite *PipelineSuite) TestCanUnmarshalWithPullRequest() {
 	suite.Assert().Equal(uint64(62), target.PullRequest.ID)
 	suite.Assert().Equal("feat: add API key authentication", target.PullRequest.Title)
 	suite.Assert().False(target.PullRequest.IsDraft)
+
+	// The branch built is the source, not the merge destination: labelling a
+	// pullrequest pipeline "main" hides it from anyone looking for its own branch.
+	suite.Assert().Equal("frontend-develop-non-delete-key", pl.Target.GetBranch())
+	suite.Assert().Equal("main", pl.Target.GetDestination())
+	suite.Assert().Equal(uint64(62), pl.Target.GetPullRequestID())
+}
+
+func (suite *PipelineSuite) TestBranchColumnShowsTheBranchBuilt() {
+	var pullRequestPipeline pipeline.Pipeline
+	suite.Require().NoError(suite.UnmarshalData("pipeline-pullrequest.json", &pullRequestPipeline))
+
+	var branchPipeline pipeline.Pipeline
+	suite.Require().NoError(suite.UnmarshalData("pipeline.json", &branchPipeline))
+
+	headers := []string{"branch", "destination", "pullrequest"}
+
+	row := pullRequestPipeline.GetRow(headers)
+	suite.Require().Len(row, 3)
+	suite.Assert().Equal("frontend-develop-non-delete-key", row[0])
+	suite.Assert().Equal("main", row[1])
+	suite.Assert().Equal("#62", row[2])
+
+	row = branchPipeline.GetRow(headers)
+	suite.Require().Len(row, 3)
+	suite.Assert().Equal("main", row[0])
+	suite.Assert().Equal("main", row[1])
+	suite.Assert().Equal(" ", row[2], "a push pipeline has no pullrequest")
 }
 
 func (suite *PipelineSuite) TestCanUnmarshalTargetPullRequestRef() {

@@ -26,11 +26,25 @@ func (target ReferenceTarget) GetType() string {
 	return "pipeline_ref_target"
 }
 
+// GetBranch returns the reference being built
+//
+// implements Target
+func (target ReferenceTarget) GetBranch() string {
+	return target.ReferenceName
+}
+
 // GetDestination returns the target's destination
 //
 // implements Target
 func (target ReferenceTarget) GetDestination() string {
 	return target.ReferenceName
+}
+
+// GetPullRequestID returns 0, since this target is not a pullrequest
+//
+// implements Target
+func (target ReferenceTarget) GetPullRequestID() uint64 {
+	return 0
 }
 
 // GetCommit return the target's commit reference

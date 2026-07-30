@@ -30,11 +30,26 @@ func (target PullRequestReferenceTarget) GetType() string {
 	return "pipeline_pullrequest_target"
 }
 
+// GetBranch returns the source of the PullRequestReferenceTarget, which is the
+// branch the pipeline built. Bitbucket leaves ref_name null for these.
+//
+// implements Target
+func (target PullRequestReferenceTarget) GetBranch() string {
+	return target.Source
+}
+
 // GetDestination returns the destination of the PullRequestReferenceTarget.
 //
 // implements Target
 func (target PullRequestReferenceTarget) GetDestination() string {
 	return target.Destination
+}
+
+// GetPullRequestID returns the id of the pullrequest being built.
+//
+// implements Target
+func (target PullRequestReferenceTarget) GetPullRequestID() uint64 {
+	return target.PullRequest.ID
 }
 
 // GetCommit returns the commit of the PullRequestReferenceTarget.
