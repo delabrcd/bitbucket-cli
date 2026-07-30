@@ -110,8 +110,7 @@ When leaving review feedback, follow this workflow (actionable comments + **one*
    - File line numbers from `grep -n` on the head revision are NEW-side → `--to`.
    - `--parent <comment-id>` replies to an existing comment.
    - `--comment-file <f|->` reads the body from a file or stdin — also on `bb pr comment update` and `bb issue comment create|update`. Use it for any long or multi-line body instead of shell-quoting it.
-   - Only inline (diff) comments can be **resolved** (`bb pr comment resolve <comment-id>`); a general comment returns `403 "You can only resolve comments on the diff."` — another reason to make everything inline where possible.
-   - Bitbucket resolves **threads**, so only a thread's first comment is resolvable. Resolving a reply you made with `--parent` fails with `Comment is not a top-level comment`; resolve the parent instead. `resolve` has the alias `done`, `reopen` has `unresolve` — neither takes `rm`/`remove`, which only ever mean `delete`.
+   - Inline and general comments are both **resolvable** (`bb pr comment resolve <comment-id>`). Bitbucket resolves **threads**, so only a thread's first comment is: resolving a reply made with `--parent` fails with `Comment is not a top-level comment` — resolve the parent instead. `resolve` has the alias `done`, `reopen` has `unresolve`; neither takes `rm`/`remove`, which only ever mean `delete`.
    - `bb pr comment list --resolved` / `--unresolved` filter by resolution. Bitbucket reports `resolution` as null on the list endpoint, so these (and the `resolution` column) refetch each comment, one request each.
 
 2. **Batch into one notification with `--pending`.** Stage every comment as a draft by adding `--pending`. A pending comment is a draft: visible only to the review author, sends **no** notification. Do not fire non-pending comments hoping the notifier debounces — it doesn't; that's one email per comment.
