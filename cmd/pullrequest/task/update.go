@@ -23,10 +23,10 @@ type ContentUpdator struct {
 }
 
 var updateCmd = &cobra.Command{
-	Use:               "update [flags] <task-id>",
+	Use:               "update [flags] [<pullrequest-id>] <task-id>",
 	Aliases:           []string{"edit"},
 	Short:             "update a pullrequest task by its <task-id>.",
-	Args:              cobra.ExactArgs(1),
+	Args:              prcommon.PullRequestArgs(1),
 	ValidArgsFunction: updateValidArgs,
 	RunE:              updateProcess,
 }
@@ -45,7 +45,6 @@ func init() {
 	updateCmd.Flags().Var(updateOptions.PullRequestID, "pullrequest", "Pullrequest to update tasks to")
 	updateCmd.Flags().StringVar(&updateOptions.Content, "content", "", "Updated content of the task")
 	updateCmd.Flags().Var(updateOptions.State, "state", "Updated state of the task. Can be one of RESOLVED or UNRESOLVED")
-	_ = updateCmd.MarkFlagRequired("pullrequest")
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.PullRequestID.CompletionFunc("pullrequest"))
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.State.CompletionFunc("state"))
 }
@@ -64,6 +63,11 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 
 func updateProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
+
+	args, err := prcommon.TakePullRequestID(cmd, updateOptions.PullRequestID, args)
+	if err != nil {
+		return err
+	}
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {

@@ -49,6 +49,21 @@ func init() {
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
 }
 
+// composeStateQuery folds a state filter into a Bitbucket query expression, since
+// Bitbucket ignores the `state` parameter whenever `q` is present.
+func composeStateQuery(query, state string) string {
+	state = strings.ToUpper(strings.TrimSpace(state))
+	query = strings.TrimSpace(query)
+
+	if len(state) == 0 || state == "ALL" {
+		return query
+	}
+	if len(query) == 0 {
+		return fmt.Sprintf("state=%q", state)
+	}
+	return fmt.Sprintf("(%s) AND state=%q", query, state)
+}
+
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
 
@@ -62,7 +77,7 @@ func listProcess(cmd *cobra.Command, args []string) (err error) {
 	if len(listOptions.Commit) > 0 {
 		uripath = repository.GetPath("commit", listOptions.Commit, "pullrequests")
 	} else if len(listOptions.Query) > 0 {
-		uripath = repository.GetPath(fmt.Sprintf("pullrequests?state=%s&q=%s", url.QueryEscape(strings.ToUpper(listOptions.State.String())), url.QueryEscape(listOptions.Query)))
+		uripath = repository.GetPath(fmt.Sprintf("pullrequests?q=%s", url.QueryEscape(composeStateQuery(listOptions.Query, listOptions.State.String()))))
 	} else {
 		uripath = repository.GetPath(fmt.Sprintf("pullrequests?state=%s", url.QueryEscape(strings.ToUpper(listOptions.State.String()))))
 	}

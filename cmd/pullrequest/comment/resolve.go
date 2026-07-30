@@ -1,6 +1,7 @@
 package comment
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -14,10 +15,10 @@ import (
 )
 
 var resolveCmd = &cobra.Command{
-	Use:               "resolve [flags] <comment-id>",
-	Aliases:           []string{"remove", "rm"},
+	Use:               "resolve [flags] [<pullrequest-id>] <comment-id>",
+	Aliases:           []string{"done"},
 	Short:             "resolve a pullrequest comment by its <comment-id>.",
-	Args:              cobra.ExactArgs(1),
+	Args:              prcommon.PullRequestArgs(1),
 	ValidArgsFunction: resolveValidArgs,
 	RunE:              resolveProcess,
 }
@@ -31,7 +32,6 @@ func init() {
 
 	resolveOptions.PullRequestID = flags.NewEnumFlagWithFunc(resolveCmd, "", prcommon.GetPullRequestIDs)
 	resolveCmd.Flags().Var(resolveOptions.PullRequestID, "pullrequest", "Pullrequest to resolve comments from")
-	_ = resolveCmd.MarkFlagRequired("pullrequest")
 	_ = resolveCmd.RegisterFlagCompletionFunc(resolveOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
@@ -49,6 +49,11 @@ func resolveValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]s
 
 func resolveProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "resolve")
+
+	args, err = prcommon.TakePullRequestID(cmd, resolveOptions.PullRequestID, args)
+	if err != nil {
+		return err
+	}
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
@@ -73,8 +78,27 @@ func resolveProcess(cmd *cobra.Command, args []string) (err error) {
 	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to resolve pullrequest comment %s: %s\n", args[0], err)
+		if parentID, ok := parentCommentID(log.ToContext(cmd.Context()), cmd, profile, repository, resolveOptions.PullRequestID.Value, args[0]); ok {
+			fmt.Fprintf(os.Stderr, "\nComment %s is a reply to %d. Resolve the thread's first comment instead:\n  bb pr comment resolve %s %d\n", args[0], parentID, resolveOptions.PullRequestID.Value, parentID)
+		}
 		os.Exit(1)
 	}
 	log.Infof("Pullrequest comment %s resolved", args[0])
 	return nil
+}
+
+// parentCommentID reports the ID of the comment this one replies to, if any.
+func parentCommentID(ctx context.Context, cmd *cobra.Command, profile *profile.Profile, repository *repository.Repository, pullRequestID, commentID string) (parentID int, ok bool) {
+	log := logger.Must(logger.FromContext(ctx)).Child("comment", "parent")
+
+	var comment Comment
+
+	if err := profile.Get(ctx, cmd, repository.GetPath("pullrequests", pullRequestID, "comments", commentID), &comment); err != nil {
+		log.Debugf("Could not fetch comment %s to look for a parent: %s", commentID, err)
+		return 0, false
+	}
+	if comment.Parent == nil || comment.Parent.ID == 0 {
+		return 0, false
+	}
+	return comment.Parent.ID, true
 }

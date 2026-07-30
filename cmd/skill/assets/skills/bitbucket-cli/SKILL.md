@@ -12,9 +12,10 @@ Repo: https://github.com/delabrcd/bitbucket-cli · Usage docs: https://github.co
 ## Conventions
 
 - **Grammar:** `bb <resource> <action> [args] [flags]`, e.g. `bb pullrequest list`, `bb pipeline step logs`. `pr` is an alias for `pullrequest`.
+- **Pullrequest id:** positional or via `--pullrequest` on every subcommand. `bb pr comment resolve 26 <comment-id>` == `bb pr comment resolve --pullrequest 26 <comment-id>`. Without the flag, the first positional is the pullrequest.
 - **Auth/workspace:** profile and workspace come from your `bb` config (`~/.config/bitbucket/config-cli.yml`, managed with `bb profile create` / `bb profile authorize` / `bb profile use`), the cwd's git remote, or explicit `--profile` / `--workspace` flags. There is no `bb config` command — profiles are the config surface.
 - **Repository:** auto-detected from the cwd's git remote; otherwise pass `--repository <slug>` (case-sensitive — use the URL slug, not the display name).
-- **Output:** pass `-o json` whenever parsing programmatically (`-o yaml`/`-o table`/`-o csv`/`-o tsv` also available). To filter, use the **built-in `--jq` / `-q <expr>`** flag — an embedded jq engine (no external `jq` binary), works on any command's output and on `bb api`, implies JSON, and prints scalar-string results raw (like `jq -r`). External piping still works too.
+- **Output:** pass `-o json` whenever parsing programmatically (`-o yaml`/`-o table`/`-o csv`/`-o tsv` also available). To filter, use the **built-in `--jq` / `-q <expr>`** flag — an embedded jq engine (no external `jq` binary), works on any command's output and on `bb api`, implies JSON, and prints scalar-string results raw (like `jq -r`). External piping still works too. `--quiet` (alias `--silent`) prints nothing on success and leaves errors on stderr — use it when looping, instead of redirecting both streams and losing the failures. Note `-q` is `--jq`, not `--quiet`.
 - **Mutations** (`create`, `update`, `merge`, `decline`, `approve`, `delete`, comment posts, pipeline `trigger`/`stop`) are remote-mutating — confirm intent before invoking. Use `--dry-run` to preview without changing anything.
 - `bb repo list` defaults to `--role owner` and returns **empty** for most workspace members — pass `--role member` to see all workspace repos (documented Bitbucket API default, not a bug).
 
@@ -42,6 +43,8 @@ Common endpoints worth knowing (all relative, no `/2.0`):
 - `repositories/{workspace}/{repo}/branch-restrictions` — merge-check config
 - `repositories/{workspace}/{repo}/default-reviewers` — repo default reviewers
 - `repositories/{workspace}/{repo}/pullrequests/{id}/activity` — activity feed (used to verify pending comment state)
+
+Use `bb pr update <id> --draft=false` to take a draft out of draft (and `--draft` to put it back). On `bb pr list`, a `--state` passed with `--query` is folded into the query, since Bitbucket ignores `state` whenever `q` is present.
 
 ## Common commands
 
@@ -108,6 +111,8 @@ When leaving review feedback, follow this workflow (actionable comments + **one*
    - `--parent <comment-id>` replies to an existing comment.
    - `--comment-file <f|->` reads the body from a file or stdin — also on `bb pr comment update` and `bb issue comment create|update`. Use it for any long or multi-line body instead of shell-quoting it.
    - Only inline (diff) comments can be **resolved** (`bb pr comment resolve <comment-id>`); a general comment returns `403 "You can only resolve comments on the diff."` — another reason to make everything inline where possible.
+   - Bitbucket resolves **threads**, so only a thread's first comment is resolvable. Resolving a reply you made with `--parent` fails with `Comment is not a top-level comment`; resolve the parent instead. `resolve` has the alias `done`, `reopen` has `unresolve` — neither takes `rm`/`remove`, which only ever mean `delete`.
+   - `bb pr comment list --resolved` / `--unresolved` filter by resolution. Bitbucket reports `resolution` as null on the list endpoint, so these (and the `resolution` column) refetch each comment, one request each.
 
 2. **Batch into one notification with `--pending`.** Stage every comment as a draft by adding `--pending`. A pending comment is a draft: visible only to the review author, sends **no** notification. Do not fire non-pending comments hoping the notifier debounces — it doesn't; that's one email per comment.
 

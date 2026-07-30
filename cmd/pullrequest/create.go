@@ -137,7 +137,9 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 
 	log.Record("repository", repository).Infof("Using repository: %s", repository)
 
-	if len(createOptions.Reviewers.Values) > 0 && createOptions.Reviewers.Values[0] != "default" {
+	requestedDefaultReviewers := len(createOptions.Reviewers.Values) > 0 && createOptions.Reviewers.Values[0] == "default"
+
+	if len(createOptions.Reviewers.Values) > 0 && !requestedDefaultReviewers {
 		isMember := func(member workspace.Member, id string) bool {
 			if id, err := common.ParseUUID(id); err == nil {
 				return member.User.ID == id
@@ -180,6 +182,7 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			return errors.Join(errors.New("Failed to get the default reviewers"), err, errMe)
 		}
 		log.Debugf("Found %d default reviewers", len(reviewers))
+		configuredDefaults := len(reviewers)
 
 		if me != nil {
 			// Removing myself from the reviewers since I cannot be a reviewer of my own pullrequest
@@ -187,6 +190,17 @@ func createProcess(cmd *cobra.Command, args []string) (err error) {
 			log.Debugf("Filtered reviewers to remove current user: %d reviewers remaining", len(reviewers))
 		}
 		payload.Reviewers = core.Map(reviewers, func(reviewer reviewer.Reviewer) user.User { return reviewer.User })
+
+		if len(payload.Reviewers) == 0 {
+			switch {
+			case configuredDefaults > 0:
+				log.Warnf("All %d default reviewer(s) were filtered out as the current user", configuredDefaults)
+				fmt.Fprintf(os.Stderr, "Warning: you are the only default reviewer configured for %s, so the pullrequest will have no reviewers\n", repository)
+			case requestedDefaultReviewers:
+				log.Warnf("--reviewer default resolved to no reviewers")
+				fmt.Fprintf(os.Stderr, "Warning: --reviewer default resolved to no reviewers; none are configured for %s or its project\n", repository)
+			}
+		}
 	}
 
 	log.Record("payload", payload).Infof("Creating pullrequest")

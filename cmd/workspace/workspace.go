@@ -195,6 +195,16 @@ func GetWorkspaceBySlugOrID(ctx context.Context, cmd *cobra.Command, slugOrID st
 	if err == nil {
 		_ = WorkspaceCache.Set(*workspace, slugOrID)
 	}
+	if errors.Is(err, errors.HTTPForbidden) || errors.Is(err, errors.HTTPUnauthorized) {
+		log.Errorf("Not allowed to read workspace %s", slugOrID, err)
+		return nil, errors.Join(
+			errors.Errorf(
+				"Not allowed to read workspace %s.\n\nThe token is missing the \"read:workspace:bitbucket\" scope, which bb resolves before running most commands.\nTo reach an endpoint without it:\n  bb api <endpoint>",
+				slugOrID,
+			),
+			err,
+		)
+	}
 	return workspace, errors.Join(errors.Errorf("Failed to get workspace %s", slugOrID), err)
 }
 

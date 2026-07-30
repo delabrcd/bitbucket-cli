@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/gildas/go-errors"
@@ -21,6 +22,66 @@ type nativeRoute struct {
 	Pattern string   // path pattern: "*" matches one segment, "**" matches one or more trailing segments
 	Command string   // the equivalent bb command
 	Adds    string   // what the command does that the raw request does not (optional)
+}
+
+// bodyContract describes what a dedicated command can express in a request body.
+// TestBodyContractsMatchRoutes keeps it in sync with nativeRoutes.
+type bodyContract struct {
+	// Expresses lists the top-level body keys the dedicated command can set.
+	Expresses []string
+
+	// Caveat is appended to a refusal, for a route where the raw request has a trap
+	// the dedicated command handles.
+	Caveat string
+}
+
+// bodyContracts is keyed by "<METHOD> <pattern>", matching an entry in nativeRoutes.
+var bodyContracts = map[string]bodyContract{
+	http.MethodPost + " repositories/*/*/pullrequests": {
+		Expresses: []string{"title", "description", "summary", "source", "destination", "close_source_branch", "draft", "reviewers"},
+	},
+	http.MethodPut + " repositories/*/*/pullrequests/*": {
+		Expresses: []string{"title", "description", "summary", "destination", "close_source_branch", "draft", "reviewers"},
+	},
+	http.MethodPost + " repositories/*/*/pullrequests/*/comments": {
+		Expresses: []string{"content", "inline", "parent", "pending"},
+	},
+	http.MethodPut + " repositories/*/*/pullrequests/*/comments/*": {
+		Expresses: []string{"content", "pending"},
+		Caveat:    "Bitbucket rejects an \"inline\" key on a comment update, so no request can move the anchor.",
+	},
+	http.MethodPost + " repositories/*/*/issues": {
+		Expresses: []string{"title", "content", "kind", "priority", "state", "assignee", "component", "milestone", "version"},
+	},
+	http.MethodPut + " repositories/*/*/issues/*": {
+		Expresses: []string{"title", "content", "kind", "priority", "state", "assignee", "component", "milestone", "version"},
+	},
+}
+
+// contract returns the body contract for a route, if one is defined.
+func (route *nativeRoute) contract() (bodyContract, bool) {
+	for _, method := range route.Methods {
+		if contract, found := bodyContracts[method+" "+route.Pattern]; found {
+			return contract, true
+		}
+	}
+	return bodyContract{}, false
+}
+
+// unexpressedFields reports the body keys the dedicated command cannot set.
+func (route *nativeRoute) unexpressedFields(bodyKeys []string) []string {
+	contract, found := route.contract()
+	if !found || len(bodyKeys) == 0 {
+		return nil
+	}
+
+	var unexpressed []string
+	for _, key := range bodyKeys {
+		if !slices.Contains(contract.Expresses, key) {
+			unexpressed = append(unexpressed, key)
+		}
+	}
+	return unexpressed
 }
 
 // nativeRoutes is ordered: the first match wins, so specific patterns come
@@ -168,7 +229,7 @@ var nativeRoutes = []nativeRoute{
 // unless --force was given. Writes are refused outright; reads only get a note
 // on stderr, since reaching for the raw response of a GET is a fair way to see
 // fields the formatted output leaves out.
-func checkNativeCommand(method, endpoint string) error {
+func checkNativeCommand(method, endpoint string, bodyKeys []string) error {
 	if apiOptions.Force {
 		return nil
 	}
@@ -183,6 +244,17 @@ func checkNativeCommand(method, endpoint string) error {
 		return nil
 	}
 
+	if unexpressed := route.unexpressedFields(bodyKeys); len(unexpressed) > 0 {
+		fmt.Fprintf(
+			os.Stderr,
+			"Note: %q is covered by \"%s\", but it cannot set %s. Running the raw request instead.\n",
+			method+" "+trimAPIRoot(endpoint),
+			route.Command,
+			quoteAndJoin(unexpressed),
+		)
+		return nil
+	}
+
 	message := strings.Builder{}
 	message.WriteString(fmt.Sprintf("%s %s is already covered by a dedicated command:\n\n", method, trimAPIRoot(endpoint)))
 	message.WriteString(fmt.Sprintf("  %s\n\n", route.Command))
@@ -191,9 +263,28 @@ func checkNativeCommand(method, endpoint string) error {
 	} else {
 		message.WriteString("It validates the arguments and formats the response, which a raw request does not.\n")
 	}
+	if contract, found := route.contract(); found && len(contract.Caveat) > 0 {
+		message.WriteString(contract.Caveat + "\n")
+	}
 	message.WriteString("Run \"bb api --force ...\" to send the request anyway.")
 
 	return errors.New(message.String())
+}
+
+// quoteAndJoin renders body keys for a message: `"a"`, `"a" and "b"`, `"a", "b" and "c"`.
+func quoteAndJoin(keys []string) string {
+	quoted := make([]string, 0, len(keys))
+	for _, key := range keys {
+		quoted = append(quoted, fmt.Sprintf("%q", key))
+	}
+	switch len(quoted) {
+	case 0:
+		return ""
+	case 1:
+		return quoted[0]
+	default:
+		return strings.Join(quoted[:len(quoted)-1], ", ") + " and " + quoted[len(quoted)-1]
+	}
 }
 
 // matchNativeRoute returns the first route covering the method and endpoint, or

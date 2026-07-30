@@ -42,6 +42,7 @@ type RootOptions struct {
 	Workspace       *flags.EnumFlag `mapstructure:"-"`
 	OutputFormat    flags.EnumFlag  `mapstructure:"-"`
 	JQ              string          `mapstructure:"-"`
+	Quiet           bool            `mapstructure:"-"`
 	DryRun          bool            `mapstructure:"-"`
 	NoMarkdownFixup bool            `mapstructure:"-"`
 	Verbose         bool            `mapstructure:"-"`
@@ -87,6 +88,8 @@ func init() {
 	RootCmd.PersistentFlags().BoolVarP(&CmdOptions.Verbose, "verbose", "v", false, "Verbose mode, overrides VERBOSE environment variable")
 	RootCmd.PersistentFlags().VarP(&CmdOptions.OutputFormat, "output", "o", "Output format (json, yaml, table). Overrides the default output format of the profile")
 	RootCmd.PersistentFlags().StringVarP(&CmdOptions.JQ, "jq", "q", "", "Filter JSON output with a jq expression (implies JSON; scalar strings print raw)")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.Quiet, "quiet", false, "Print nothing on success; errors are still written to stderr. Also known as --silent")
+	RootCmd.PersistentFlags().BoolVar(&CmdOptions.Quiet, "silent", false, "Print nothing on success; errors are still written to stderr. Also known as --quiet")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.StopOnError, "stop-on-error", false, "Stop on error")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.WarnOnError, "warn-on-error", false, "Warn on error")
 	RootCmd.PersistentFlags().BoolVar(&CmdOptions.IgnoreErrors, "ignore-errors", false, "Ignore errors")

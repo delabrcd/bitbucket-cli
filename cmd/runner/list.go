@@ -53,6 +53,15 @@ func listProcess(cmd *cobra.Command, args []string) error {
 
 	runners, err := profile.GetAll[Runner](log.ToContext(cmd.Context()), cmd, path)
 	if err != nil {
+		if errors.Is(err, errors.HTTPNotFound) {
+			return errors.Join(
+				errors.Errorf(
+					"No runners at %s, or the token cannot see them: Bitbucket answers 404 for both.\n\nIf you expect runners, check the token has \"account:admin\" (--workspace-level) or \"repository:admin\".",
+					path,
+				),
+				err,
+			)
+		}
 		return errors.Join(errors.New("failed to retrieve runners"), err)
 	}
 	if len(runners) == 0 {

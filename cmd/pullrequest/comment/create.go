@@ -26,7 +26,7 @@ type ContentCreator struct {
 }
 
 var createCmd = &cobra.Command{
-	Use:     "create",
+	Use:     "create [flags] [<pullrequest-id>]",
 	Aliases: []string{"add", "new"},
 	Short:   "create a pullrequest comment",
 	Long: `Create a pullrequest comment.
@@ -45,7 +45,7 @@ Rule of thumb: a line that exists only after the change must be anchored with
 --to/--line; a deleted line with --from; an unchanged context line works with
 either. File line numbers from a tool reading the new file (e.g. "grep -n" on
 the head revision) are NEW-side numbers and belong on --to/--line.`,
-	Args: cobra.NoArgs,
+	Args: prcommon.PullRequestArgs(0),
 	RunE: createProcess,
 }
 
@@ -77,12 +77,16 @@ func init() {
 	_ = createCmd.MarkFlagFilename("comment-file")
 	createCmd.MarkFlagsMutuallyExclusive("comment", "comment-file")
 	createCmd.MarkFlagsOneRequired("comment", "comment-file")
-	_ = createCmd.MarkFlagRequired("pullrequest")
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
 func createProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
+
+	args, err = prcommon.TakePullRequestID(cmd, createOptions.PullRequestID, args)
+	if err != nil {
+		return err
+	}
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {

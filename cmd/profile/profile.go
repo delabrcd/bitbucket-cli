@@ -361,6 +361,11 @@ func (profile Profile) String() string {
 func (profile Profile) Print(context context.Context, cmd *cobra.Command, payload any) error {
 	log := logger.Must(logger.FromContext(context)).Child("profile", "print", "format", profile.OutputFormat)
 
+	if quiet, err := cmd.Flags().GetBool("quiet"); err == nil && quiet {
+		log.Debugf("Quiet mode: not printing the payload")
+		return nil
+	}
+
 	// A --jq expression filters the payload as JSON, regardless of the configured
 	// output format.
 	if jq := cmd.Flag("jq"); jq != nil && jq.Changed && len(jq.Value.String()) > 0 {
@@ -497,7 +502,7 @@ func (profile Profile) PrintTable(context context.Context, cmd *cobra.Command, p
 		headers := actual.GetHeaders(cmd)
 		table.SetHeader(headers)
 		table.SetAutoWrapText(false)
-		table.Append(actual.GetRow(headers))
+		table.Append(fitTableRow(actual.GetRow(headers)))
 	case common.Tableables:
 		log.Debugf("Payload is a slice of %d elements", actual.Size())
 		if actual.Size() > 0 {
@@ -505,7 +510,7 @@ func (profile Profile) PrintTable(context context.Context, cmd *cobra.Command, p
 			table.SetHeader(headers)
 			table.SetAutoWrapText(false)
 			for i := 0; i < actual.Size(); i++ {
-				table.Append(actual.GetRowAt(i, headers))
+				table.Append(fitTableRow(actual.GetRowAt(i, headers)))
 			}
 		}
 	default:
@@ -513,6 +518,22 @@ func (profile Profile) PrintTable(context context.Context, cmd *cobra.Command, p
 	}
 	table.Render()
 	return nil
+}
+
+// maxTableCellWidth caps a table cell, since text wrapping is off.
+const maxTableCellWidth = 80
+
+// fitTableRow flattens and caps each cell of a table row. Only the table format is
+// affected; json, yaml, csv and tsv carry the full value.
+func fitTableRow(row []string) []string {
+	for i, cell := range row {
+		cell = strings.NewReplacer("\r\n", " ", "\r", " ", "\n", " ", "\t", " ").Replace(cell)
+		if runes := []rune(cell); len(runes) > maxTableCellWidth {
+			cell = string(runes[:maxTableCellWidth-1]) + "…"
+		}
+		row[i] = cell
+	}
+	return row
 }
 
 // Validate validates a Profile

@@ -26,7 +26,7 @@ type ContentUpdator struct {
 }
 
 var updateCmd = &cobra.Command{
-	Use:     "update [flags] <comment-id>",
+	Use:     "update [flags] [<pullrequest-id>] <comment-id>",
 	Aliases: []string{"edit"},
 	Short:   "update an issue comment by its <comment-id>.",
 	Long: `Update a pullrequest comment by its <comment-id>.
@@ -44,7 +44,7 @@ match the kind of line:
 Rule of thumb: a line that exists only after the change must be anchored with
 --to/--line; a deleted line with --from; an unchanged context line works with
 either.`,
-	Args:              cobra.ExactArgs(1),
+	Args:              prcommon.PullRequestArgs(1),
 	ValidArgsFunction: updateValidArgs,
 	RunE:              updateProcess,
 }
@@ -77,7 +77,6 @@ func init() {
 	_ = updateCmd.MarkFlagFilename("comment-file")
 	updateCmd.MarkFlagsMutuallyExclusive("comment", "comment-file")
 	updateCmd.MarkFlagsOneRequired("comment", "comment-file")
-	_ = updateCmd.MarkFlagRequired("pullrequest")
 	_ = updateCmd.RegisterFlagCompletionFunc(updateOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
@@ -95,6 +94,11 @@ func updateValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 
 func updateProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "update")
+
+	args, err = prcommon.TakePullRequestID(cmd, updateOptions.PullRequestID, args)
+	if err != nil {
+		return err
+	}
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
