@@ -2,6 +2,10 @@
 Unreleased
 =============
 
+0.19.12
+=============
+2026-07-30
+
 * docs: the bundled skill no longer says only inline comments can be resolved. Bitbucket now resolves general comments too; the only constraint is that a thread resolves through its first comment
 
 0.19.11
