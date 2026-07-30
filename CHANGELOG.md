@@ -2,6 +2,19 @@
 Unreleased
 =============
 
+* fix: `bb pr comment resolve` and `reopen` no longer advertise the `remove`/`rm` aliases, which dispatched to `delete` and irreversibly deleted the comment. `resolve` now aliases `done`, `reopen` aliases `unresolve`, and a test rejects any two sibling commands sharing a name or alias
+* fix: `bb pr list --state` is now honoured alongside `--query`; the state is folded into the query expression, since Bitbucket ignores `state` whenever `q` is present. Previously the state was silently dropped and every state came back
+* fix: `bb pr create --reviewer default` and `bb pr update --add-reviewer default` warn on stderr when `default` resolves to nobody, instead of silently opening an unreviewed pullrequest
+* fix: `bb pipeline logs --step <uuid>` accepts an unbraced uuid; it was passed through verbatim and Bitbucket only accepts the braced form
+* feat: `--quiet` (alias `--silent`) prints nothing on success and leaves errors on stderr, so a loop over many commands no longer has to redirect both streams and hide the failures. `-q` remains `--jq`, as in `gh`
+* feat: the pullrequest id is accepted positionally on every subcommand that took only `--pullrequest` (`pr comment`, `pr task`, `pr activity list`), so `bb pr comment resolve 26 <comment-id>` works. `--pullrequest` is unchanged
+* feat: `bb pr update --draft`/`--draft=false` marks a pullrequest as a draft or ready for review; un-drafting previously required `bb api --force`
+* feat: `bb api` sends a covered write whose body carries a field the dedicated command cannot set, instead of demanding `--force`, and its refusal for a comment update now mentions that Bitbucket rejects an `inline` key
+* feat: `bb pr comment list` gains `--resolved`/`--unresolved`, and populates `resolution` when it is asked for; Bitbucket reports it as null on the list endpoint
+* feat: failing to read the workspace now names the missing `read:workspace:bitbucket` scope and points at `bb api`, which skips the lookup
+* feat: `bb runner list` explains that Bitbucket answers 404 both for a workspace with no runners and for a token that may not see them
+* fix: table output caps each cell at 80 characters and flattens newlines, so a pullrequest description no longer renders one row thousands of columns wide. json, yaml, csv and tsv still carry the full value
+
 0.19.10
 =============
 2026-07-27

@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/delabrcd/bitbucket-cli/cmd/common"
 	"github.com/delabrcd/bitbucket-cli/cmd/pipeline/step"
 	"github.com/gildas/go-logger"
 	"github.com/joho/godotenv"
@@ -111,4 +112,24 @@ func (suite *PipelineStepSuite) TestIsFailedReturnsFalseForStopped() {
 func (suite *PipelineStepSuite) TestIsFailedReturnsFalseForNilResult() {
 	s := step.Step{State: step.StepState{Result: nil}}
 	suite.Assert().False(s.IsFailed())
+}
+
+func TestUUIDNormalizesToTheBracedForm(t *testing.T) {
+	const bare = "d3ceb0f4-6d8b-4a2c-9f2e-1b7c5a9e0d11"
+
+	braced, err := common.ParseUUID(bare)
+	if err != nil {
+		t.Fatalf("ParseUUID(%q): %v", bare, err)
+	}
+	if braced.String() != "{"+bare+"}" {
+		t.Errorf("ParseUUID(%q).String() = %q, want the braced form", bare, braced.String())
+	}
+
+	fromBraced, err := common.ParseUUID("{" + bare + "}")
+	if err != nil {
+		t.Fatalf("ParseUUID of the braced form: %v", err)
+	}
+	if fromBraced.String() != braced.String() {
+		t.Errorf("braced and bare forms differ: %q vs %q", fromBraced.String(), braced.String())
+	}
 }

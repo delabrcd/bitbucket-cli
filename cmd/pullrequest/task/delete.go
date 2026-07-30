@@ -15,10 +15,10 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:               "delete [flags] <task-id...>",
+	Use:               "delete [flags] [<pullrequest-id>] <task-id...>",
 	Aliases:           []string{"remove", "rm"},
 	Short:             "delete pullrequest tasks by their <task-id>.",
-	Args:              cobra.MinimumNArgs(1),
+	Args:              prcommon.PullRequestArgsMinimum(1),
 	ValidArgsFunction: deleteValidArgs,
 	RunE:              deleteProcess,
 }
@@ -32,7 +32,6 @@ func init() {
 
 	deleteOptions.PullRequestID = flags.NewEnumFlagWithFunc(deleteCmd, "", prcommon.GetPullRequestIDs)
 	deleteCmd.Flags().Var(deleteOptions.PullRequestID, "pullrequest", "Pullrequest to delete comments from")
-	_ = deleteCmd.MarkFlagRequired("pullrequest")
 	_ = deleteCmd.RegisterFlagCompletionFunc(deleteOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
@@ -50,6 +49,11 @@ func deleteValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 
 func deleteProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "delete")
+
+	args, err := prcommon.TakePullRequestID(cmd, deleteOptions.PullRequestID, args)
+	if err != nil {
+		return err
+	}
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {

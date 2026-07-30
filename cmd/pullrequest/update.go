@@ -37,6 +37,7 @@ var updateOptions struct {
 	AddReviewers      *flags.EnumSliceFlag
 	RemoveReviewers   *flags.EnumSliceFlag
 	CloseSourceBranch bool
+	Draft             bool
 }
 
 func init() {
@@ -53,6 +54,7 @@ func init() {
 	updateCmd.Flags().Var(updateOptions.AddReviewers, "add-reviewer", "Reviewer(s) to add to the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname. If the first reviewer is `default`, the command will try to find the default reviewers from the repository or project settings.")
 	updateCmd.Flags().Var(updateOptions.RemoveReviewers, "remove-reviewer", "Reviewer(s) to remove from the pullrequest. Can be specified multiple times, or as a comma-separated list. Can be the user Account ID, UUID, name, or nickname.")
 	updateCmd.Flags().BoolVar(&updateOptions.CloseSourceBranch, "close-source-branch", false, "Close the source branch after merging")
+	updateCmd.Flags().BoolVar(&updateOptions.Draft, "draft", false, "Mark the pullrequest as a draft. Use --draft=false to mark a draft as ready for review")
 
 	_ = updateCmd.MarkFlagFilename("description-file")
 	updateCmd.MarkFlagsMutuallyExclusive("description", "description-file")
@@ -137,6 +139,11 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 		updateWanted = true
 	}
 
+	if cmd.Flag("draft").Changed {
+		pullrequest.IsDraft = updateOptions.Draft
+		updateWanted = true
+	}
+
 	var pullrequestWorkspace *workspace.Workspace
 	if pullrequest.Destination.Repository != nil {
 		log.Infof("Getting workspace of pullrequest destination repository %s", pullrequest.Destination.Repository.FullName)
@@ -203,10 +210,21 @@ func updateProcess(cmd *cobra.Command, args []string) error {
 				}
 				log.Debugf("Found %d default reviewers", len(reviewers))
 
+				configuredDefaults := len(reviewers)
+
 				if me != nil {
 					// Removing myself from the reviewers since I cannot be a reviewer of my own pullrequest
 					reviewers = core.Filter(reviewers, func(reviewer reviewer.Reviewer) bool { return reviewer.User.ID != me.ID })
 					log.Debugf("Filtered reviewers to remove current user: %d reviewers remaining", len(reviewers))
+				}
+
+				if len(reviewers) == 0 {
+					log.Warnf("--add-reviewer default resolved to no reviewers")
+					if configuredDefaults > 0 {
+						fmt.Fprintf(os.Stderr, "Warning: you are the only default reviewer configured for %s, so `default` added no reviewers\n", pullrequest.Source.Repository)
+					} else {
+						fmt.Fprintf(os.Stderr, "Warning: `default` resolved to no reviewers (none are configured for %s or its project)\n", pullrequest.Source.Repository)
+					}
 				}
 
 				// Replace the first reviewer with the list of default reviewers and appends the rest

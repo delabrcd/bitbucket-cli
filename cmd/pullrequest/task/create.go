@@ -26,10 +26,10 @@ type ContentCreator struct {
 }
 
 var createCmd = &cobra.Command{
-	Use:     "create",
+	Use:     "create [flags] [<pullrequest-id>]",
 	Aliases: []string{"add", "new"},
 	Short:   "create a pullrequest task",
-	Args:    cobra.NoArgs,
+	Args:    prcommon.PullRequestArgs(0),
 	RunE:    createProcess,
 }
 
@@ -49,7 +49,6 @@ func init() {
 	createCmd.Flags().StringVar(&createOptions.Content, "content", "", "Content of the task")
 	createCmd.Flags().Var(createOptions.CommentID, "comment", "Comment ID to create task on")
 	createCmd.Flags().BoolVar(&createOptions.Pending, "pending", false, "Mark the task as pending")
-	_ = createCmd.MarkFlagRequired("pullrequest")
 	_ = createCmd.MarkFlagRequired("content")
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.PullRequestID.CompletionFunc("pullrequest"))
 	_ = createCmd.RegisterFlagCompletionFunc(createOptions.CommentID.CompletionFunc("comment"))
@@ -57,6 +56,11 @@ func init() {
 
 func createProcess(cmd *cobra.Command, args []string) error {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "create")
+
+	args, err := prcommon.TakePullRequestID(cmd, createOptions.PullRequestID, args)
+	if err != nil {
+		return err
+	}
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {

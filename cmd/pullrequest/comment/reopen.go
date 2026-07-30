@@ -14,10 +14,10 @@ import (
 )
 
 var reopenCmd = &cobra.Command{
-	Use:               "reopen [flags] <comment-id>",
-	Aliases:           []string{"remove", "rm"},
+	Use:               "reopen [flags] [<pullrequest-id>] <comment-id>",
+	Aliases:           []string{"unresolve"},
 	Short:             "reopen a pullrequest comment by its <comment-id>.",
-	Args:              cobra.ExactArgs(1),
+	Args:              prcommon.PullRequestArgs(1),
 	ValidArgsFunction: reopenValidArgs,
 	RunE:              reopenProcess,
 }
@@ -31,7 +31,6 @@ func init() {
 
 	reopenOptions.PullRequestID = flags.NewEnumFlagWithFunc(reopenCmd, "", prcommon.GetPullRequestIDs)
 	reopenCmd.Flags().Var(reopenOptions.PullRequestID, "pullrequest", "Pullrequest to reopen comments from")
-	_ = reopenCmd.MarkFlagRequired("pullrequest")
 	_ = reopenCmd.RegisterFlagCompletionFunc(reopenOptions.PullRequestID.CompletionFunc("pullrequest"))
 }
 
@@ -49,6 +48,11 @@ func reopenValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]st
 
 func reopenProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "reopen")
+
+	args, err = prcommon.TakePullRequestID(cmd, reopenOptions.PullRequestID, args)
+	if err != nil {
+		return err
+	}
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {

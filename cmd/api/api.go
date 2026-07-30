@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -36,6 +37,9 @@ dedicated command already covers the endpoint, a write (POST/PUT/DELETE) is
 refused and names that command instead, because the raw request skips the
 markdown normalization, argument validation and output formatting the command
 provides. A read only prints a note. Pass --force to send the request anyway.
+
+A write whose body carries a field the dedicated command cannot set is sent
+regardless, with a note saying so.
 
 Examples:
   # Get the current user
@@ -119,7 +123,7 @@ func apiProcess(cmd *cobra.Command, args []string) (err error) {
 
 	endpoint := normalizeEndpoint(args[0])
 
-	if err = checkNativeCommand(method, endpoint); err != nil {
+	if err = checkNativeCommand(method, endpoint, bodyTopLevelKeys(body)); err != nil {
 		return err
 	}
 
@@ -182,6 +186,45 @@ func buildBody() (body interface{}, payloadType string, err error) {
 		payloadType = "application/json"
 	}
 	return fields, payloadType, nil
+}
+
+// bodyTopLevelKeys reports the top-level keys of a JSON request body. A body that is
+// absent or is not a JSON object yields nothing.
+func bodyTopLevelKeys(body interface{}) []string {
+	var raw []byte
+
+	switch payload := body.(type) {
+	case map[string]interface{}:
+		keys := make([]string, 0, len(payload))
+		for key := range payload {
+			// "--field source.branch.name=x" sets the top-level "source" object
+			top, _, _ := strings.Cut(key, ".")
+			if !slices.Contains(keys, top) {
+				keys = append(keys, top)
+			}
+		}
+		slices.Sort(keys)
+		return keys
+	case *bytes.Reader:
+		raw = make([]byte, payload.Size())
+		// ReadAt leaves the reader's own offset alone, so the body still sends intact.
+		if n, _ := payload.ReadAt(raw, 0); n != len(raw) {
+			return nil
+		}
+	default:
+		return nil
+	}
+
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil {
+		return nil
+	}
+	keys := make([]string, 0, len(fields))
+	for key := range fields {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+	return keys
 }
 
 // typedFieldValue converts a --field value to a typed value, mirroring gh api:

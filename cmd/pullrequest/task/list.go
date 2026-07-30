@@ -15,9 +15,9 @@ import (
 )
 
 var listCmd = &cobra.Command{
-	Use:   "list",
+	Use:   "list [flags] [<pullrequest-id>]",
 	Short: "list all pullrequest tasks",
-	Args:  cobra.NoArgs,
+	Args:  prcommon.PullRequestArgs(0),
 	RunE:  listProcess,
 }
 
@@ -40,7 +40,6 @@ func init() {
 	listCmd.Flags().Var(listOptions.Columns, "columns", "Comma-separated list of columns to display")
 	listCmd.Flags().Var(listOptions.SortBy, "sort", "Column to sort by")
 	listCmd.Flags().IntVar(&listOptions.PageLength, "page-length", 0, "Number of items per page to retrieve from Bitbucket. Default is the profile's default page length")
-	_ = listCmd.MarkFlagRequired("pullrequest")
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.PullRequestID.CompletionFunc("pullrequest"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.Columns.CompletionFunc("columns"))
 	_ = listCmd.RegisterFlagCompletionFunc(listOptions.SortBy.CompletionFunc("sort"))
@@ -48,6 +47,11 @@ func init() {
 
 func listProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "list")
+
+	args, err = prcommon.TakePullRequestID(cmd, listOptions.PullRequestID, args)
+	if err != nil {
+		return err
+	}
 	ctx := log.ToContext(cmd.Context())
 
 	repository, err := repository.GetRepository(ctx, cmd)

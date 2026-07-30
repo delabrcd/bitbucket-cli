@@ -182,8 +182,9 @@ func (step *Step) UnmarshalJSON(data []byte) error {
 func GetPipelineStepID(context context.Context, cmd *cobra.Command, pipelineID string, nameOrID string) (id string, err error) {
 	log := logger.Must(logger.FromContext(context)).Child("pipeline", "getstepid")
 
-	if _, parseErr := common.ParseUUID(nameOrID); parseErr == nil {
-		return nameOrID, nil
+	// Normalized, since Bitbucket only accepts the braced form in the path.
+	if id, parseErr := common.ParseUUID(nameOrID); parseErr == nil {
+		return id.String(), nil
 	}
 
 	repository, err := repository.GetRepository(cmd.Context(), cmd)

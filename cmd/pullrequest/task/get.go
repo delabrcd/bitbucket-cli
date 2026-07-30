@@ -14,10 +14,10 @@ import (
 )
 
 var getCmd = &cobra.Command{
-	Use:               "get [flags] <task-id>",
+	Use:               "get [flags] [<pullrequest-id>] <task-id>",
 	Aliases:           []string{"show", "info", "display"},
 	Short:             "get a pullrequest task by its <task-id>.",
-	Args:              cobra.ExactArgs(1),
+	Args:              prcommon.PullRequestArgs(1),
 	ValidArgsFunction: getValidArgs,
 	RunE:              getProcess,
 }
@@ -34,7 +34,6 @@ func init() {
 	getOptions.Columns = flags.NewEnumSliceFlag(columns.Columns()...)
 	getCmd.Flags().Var(getOptions.PullRequestID, "pullrequest", "Pullrequest to get tasks from")
 	getCmd.Flags().Var(getOptions.Columns, "columns", "Comma-separated list of columns to display")
-	_ = getCmd.MarkFlagRequired("pullrequest")
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.PullRequestID.CompletionFunc("pullrequest"))
 	_ = getCmd.RegisterFlagCompletionFunc(getOptions.Columns.CompletionFunc("columns"))
 }
@@ -53,6 +52,11 @@ func getValidArgs(cmd *cobra.Command, args []string, toComplete string) ([]strin
 
 func getProcess(cmd *cobra.Command, args []string) (err error) {
 	log := logger.Must(logger.FromContext(cmd.Context())).Child(cmd.Parent().Name(), "get")
+
+	args, err = prcommon.TakePullRequestID(cmd, getOptions.PullRequestID, args)
+	if err != nil {
+		return err
+	}
 
 	profile, err := profile.GetProfileFromCommand(cmd.Context(), cmd)
 	if err != nil {
