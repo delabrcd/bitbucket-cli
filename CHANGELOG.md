@@ -2,6 +2,10 @@
 Unreleased
 =============
 
+0.19.11
+=============
+2026-07-30
+
 * fix: `bb pr comment resolve` and `reopen` no longer advertise the `remove`/`rm` aliases, which dispatched to `delete` and irreversibly deleted the comment. `resolve` now aliases `done`, `reopen` aliases `unresolve`, and a test rejects any two sibling commands sharing a name or alias
 * fix: `bb pr list --state` is now honoured alongside `--query`; the state is folded into the query expression, since Bitbucket ignores `state` whenever `q` is present. Previously the state was silently dropped and every state came back
 * fix: `bb pr create --reviewer default` and `bb pr update --add-reviewer default` warn on stderr when `default` resolves to nobody, instead of silently opening an unreviewed pullrequest
