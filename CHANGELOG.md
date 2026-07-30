@@ -2,6 +2,10 @@
 Unreleased
 =============
 
+0.19.13
+=============
+2026-07-30
+
 * fix: `bb pipeline list` shows the branch a pullrequest pipeline actually built in the BRANCH column, instead of its merge destination. On a stack of pullrequests every run appeared under a neighbour's branch and its own branch appeared nowhere, so searching the output for a branch found nothing and read as "this branch has no build"
 * feat: `bb pipeline list --columns` accepts `destination` and `pullrequest`, the merge destination and the pullrequest id of a pullrequest pipeline
 
